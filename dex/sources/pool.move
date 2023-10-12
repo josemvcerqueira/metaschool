@@ -63,7 +63,7 @@ module dex::pool {
     assert!(!pool.started, EAlreadyStarted);
     // We will seed the pool with 1000 ETH and 1800000 USDC
     // The LP Token represents the shares of the liquidity in the pool
-    // The seed invvariant is sqrt(1000 * 1800000)
+    // The seed invariant is sqrt(1000 * 1800000)
     // To avoid multiplication overflow errors, we cast u64 to u256 
     // Then we square root and cast it back to u64
     // We also burn the initial shares as they do not belong to anyone
@@ -71,7 +71,7 @@ module dex::pool {
 
 
     // First we mint 1000 ETH
-    // Then we convert into a Balance
+    // Then we convert it to Balance
     // Then we add to the Pool ETH Balance
     balance::join(&mut pool.balance_x, coin::into_balance(eth::mint(eth_storage, INITIAL_ETH_AMOUNT, ctx)));
 
@@ -85,7 +85,7 @@ module dex::pool {
   // Always send coins to Functions, do not pass a mut reference
   /*
   * @param pool The pool we are swapping with
-  * @param coin_x The Eth we are selling
+  * @param coin_x The ETH we are selling
   * @param min_amount_out The minimum amount of USDC we want to fight slippage
   */
   public fun swap_eth(pool: &mut Pool, coin_x: Coin<ETH>, min_amount_out: u64, ctx: &mut TxContext): Coin<USDC> {

@@ -8,18 +8,18 @@ module dex::usdc {
   use sui::tx_context::{Self, TxContext};
   use sui::coin::{Self, Coin, TreasuryCap};
 
-  // Only the Faucet can call mint
+  // Only the Faucet and Pool modules can call mint
   friend dex::faucet;
   friend dex::pool;
 
   // ** Structs
 
   // One Time Witness to create a Current in Sui
-  // This struct has the drop ability so it cannot be transfered nor stored. 
+  // This struct has the drop ability so it cannot be transferred nor stored. 
   // It allows the Network to know it is a unique type
   struct USDC has drop {}
 
-  // Objects with the Key ability can be Shared with the entire network, sent to any address but need a custom transfer function
+  // Objects with the Key ability can be Shared with the entire network, and sent to any address but need a custom transfer function
   // We will share this object to wrap the TreasuryCap because it is needed to mint coins
   struct USDCStorage has key {
     id: UID,
@@ -34,11 +34,11 @@ module dex::usdc {
     user: address
   }
 
-  // The init functions runs once on Module creation and accepts a one time witness as the first argument
+  // The init function runs once on Module creation and accepts a one-time witness as the first argument
   // Witness is a struct with 1 ability, drop, it guarantees that there is only one in the entire network as you can only get it in the init function
   fun init(witness: USDC, ctx: &mut TxContext) {
       // We call the create_currency
-      // Creating a currency requires a one time witness to ensure it is a unique coin
+      // Creating a currency requires a one-time witness to ensure it is a unique coin
       // Only the holder of the TreasuryCap is allowed to mint and burn this coin
       // Metadata holds all the information about the coin, so other applications query it
       let (treasury_cap, metadata) = coin::create_currency<USDC>(
