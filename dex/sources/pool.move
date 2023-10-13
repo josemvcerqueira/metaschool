@@ -13,7 +13,9 @@ module dex::pool {
   use dex::lp_token::{Self, LPTokenStorage};
 
   const INITIAL_ETH_AMOUNT: u64 = 1_000_000_000_000; // 1000e9 - 1000 ETH
-  const INITIAL_USDC_AMOUNT: u64 = 1800000000000; // 1800000e6 - 1800000 USDC
+  const INITIAL_USDC_AMOUNT: u64 = 1800000000000; // 1800000e6 - 1800000 USDC 
+  const FEE_PERCENT: u256 = 3000000; // 0.03%
+  const PRECISION: u256 = 1000000000; // 1e9 Precision for the fee
 
   const EAlreadyStarted: u64 = 0;
   const EPoolNotStarted: u64 = 1;
@@ -193,6 +195,10 @@ module dex::pool {
           (balance_in as u256),
           (balance_out as u256)
         );
+
+    // We remove the swap fee from the coin_in_amount
+    // We do some fixed point math by multiplying to the percent then removing the precision
+    let coin_in_amount = coin_in_amount - (coin_in_amount * FEE_PERCENT / PRECISION);    
 
     // @dev read more here https://devweb3.net/an-introduction-to-the-uniswap-v2-math-function/
     // K = x * y
