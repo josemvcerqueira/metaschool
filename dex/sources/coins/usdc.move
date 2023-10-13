@@ -51,8 +51,8 @@ module dex::usdc {
             ctx
         );
 
-      // We Wrap the TreasuryCap inside The USDCStorage and share with the entire Network
-      // Object properties can only be accessed by the module that creates it. Therefore, no one can accesss the treasury_cap because it is inside USDCStorage
+      // We Wrap the TreasuryCap inside The USDCStorage and share it with the entire Network
+      // Object properties can only be accessed by the module that creates it. Therefore, no one can access the treasury_cap because it is inside USDCStorage
       // The USDCStorage object can be passed an argument to any function because it is shared
       transfer::share_object(
         USDCStorage {
