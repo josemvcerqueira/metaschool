@@ -79,9 +79,9 @@ module dex::dex {
 
   // * VIEW FUNCTIONS
 
-  public fun user_last_mint_epoch<CoinType>(self: &mut Storage, user: address): u64 {
+  public fun user_last_mint_epoch<CoinType>(self: &Storage, user: address): u64 {
     // Load the Coin Data from storage
-    let data = df::borrow_mut<TypeName, Data<CoinType>>(&mut self.id, get<CoinType>());
+    let data = df::borrow<TypeName, Data<CoinType>>(&self.id, get<CoinType>());
 
     // Check if the user has ever used the faucet
     // If so we retrieve the last epoch saved
@@ -91,7 +91,7 @@ module dex::dex {
     0 
   }
 
-  public fun user_swap_count(self: &mut Storage, user: address): u64 {
+  public fun user_swap_count(self: &Storage, user: address): u64 {
     // Check if the user has ever swapped
     // If he has we return the total swap count
     if (table::contains(&self.swaps, user)) return *table::borrow(&self.swaps, user);
