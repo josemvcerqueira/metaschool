@@ -52,7 +52,7 @@ module dex::test_dex {
     };
 
     // Create an account cap for Bob
-    next_tx(test, alice);
+    next_tx(test, bob);
     {
       clob::mint_account_cap_transfer(bob, ctx(test));
     };
@@ -69,6 +69,97 @@ module dex::test_dex {
       test::return_shared(storage);
       test::return_shared(pool);
     };
+  }
+
+  #[test]
+  fun test_mint_dex_token_every_two_swaps() {
+    let scenario = scenario();
+
+    let test = &mut scenario;
+    
+    let (_, bob) = people();
+    let c = clock::create_for_testing(ctx(test));
+
+    set_up_test(test, &c);
+
+    // Create an account cap for Bob
+    next_tx(test, bob);
+    {
+      let storage = test::take_shared<Storage>(test);
+      let account_cap = test::take_from_sender<AccountCap>(test);
+      let pool = test::take_shared<Pool<ETH, USDC>>(test);
+      
+      let (eth_coin, usdc_coin, coin_dex) = dex::place_market_order(
+        &mut storage,
+        &mut pool, 
+        &account_cap, 
+        add_decimals(1, 9),
+        true,
+        coin::zero<ETH>(ctx(test)),
+        mint<USDC>(130, 9, ctx(test)),
+        &c,
+        ctx(test)
+      );
+
+    burn(eth_coin);
+    burn(usdc_coin);
+    assert_eq(burn(coin_dex), 0);
+
+    let (eth_coin, usdc_coin, coin_dex) = dex::place_market_order(
+        &mut storage,
+        &mut pool, 
+        &account_cap, 
+        add_decimals(1, 9),
+        true,
+        coin::zero<ETH>(ctx(test)),
+        mint<USDC>(130, 9, ctx(test)),
+        &c,
+        ctx(test)
+      );
+
+    burn(eth_coin);
+    burn(usdc_coin);
+    assert_eq(burn(coin_dex), 1 * FLOAT_SCALING);
+
+    let (eth_coin, usdc_coin, coin_dex) = dex::place_market_order(
+        &mut storage,
+        &mut pool, 
+        &account_cap, 
+        add_decimals(1, 9),
+        true,
+        coin::zero<ETH>(ctx(test)),
+        mint<USDC>(130, 9, ctx(test)),
+        &c,
+        ctx(test)
+    );
+
+    burn(eth_coin);
+    burn(usdc_coin);
+    assert_eq(burn(coin_dex), 0);
+
+    let (eth_coin, usdc_coin, coin_dex) = dex::place_market_order(
+        &mut storage,
+        &mut pool, 
+        &account_cap, 
+        add_decimals(1, 9),
+        true,
+        coin::zero<ETH>(ctx(test)),
+        mint<USDC>(130, 9, ctx(test)),
+        &c,
+        ctx(test)
+      );
+
+    burn(eth_coin);
+    burn(usdc_coin);
+    assert_eq(burn(coin_dex), 1 * FLOAT_SCALING);
+
+    test::return_shared(pool);
+    test::return_shared(storage);
+    test::return_to_sender(test, account_cap);
+    };
+
+    clock::destroy_for_testing(c);
+    test::end(scenario);       
   }
 
   // Can mint faucet once per epoch

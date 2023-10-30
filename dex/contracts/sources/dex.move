@@ -328,9 +328,10 @@ module dex::dex {
     if (coin::value(&c) == 0) {
       // destroy if it does not
       coin::destroy_zero(c);
-    }; 
+    } else {
     // If it has value we transfer
-    transfer::transfer(c, sender);
+    transfer::public_transfer(c, sender);
+    }; 
   }
 
   #[test_only]
