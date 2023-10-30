@@ -24,7 +24,7 @@ module dex::dex {
   const MAX_U64: u64 = 18446744073709551615;
   // Restrictions on limit orders.
   const NO_RESTRICTION: u8 = 0;
-  const FLOAT_SCALING: u64 = 1_000_000_000; // 1ee9
+  const FLOAT_SCALING: u64 = 1_000_000_000; // 1e9
 
   const EAlreadyMintedThisEpoch: u64 = 0;
 
@@ -44,12 +44,8 @@ module dex::dex {
   struct Storage has key {
     id: UID,
     dex_supply: Supply<DEX>,
-    swaps: Table<address, u64>
-  }
-
-  // Holder of this account will refill the limit orders once they run out
-  struct AdminCap has key {
-    id: UID
+    swaps: Table<address, u64>,
+    account_cap: AccountCap
   }
 
   #[allow(unused_function)]
@@ -75,10 +71,10 @@ module dex::dex {
     transfer::share_object(Storage { 
       id: object::new(ctx), 
       dex_supply: coin::treasury_into_supply(treasury_cap), 
-      swaps: table::new(ctx)
+      swaps: table::new(ctx),
+      // We will store the deployer account_cap here to be able to refill the pool
+      account_cap: clob::create_account(ctx)
     });
-    // We send the AdminCap to the deployer
-    transfer::transfer(AdminCap { id: object::new(ctx) }, tx_context::sender(ctx));
   }
 
   /*
@@ -153,60 +149,15 @@ module dex::dex {
     clob::create_pool<ETH, USDC>(1 * FLOAT_SCALING, 1, fee, ctx);
   }
 
-  // @admin The admin will refill the pool in case everyone filled all limited orders 
-  // We need to fill the pool with limit orders for users to swap agaisnt
+  // Only call if there are no orders
   public fun fill_pool(
-    _: &AdminCap, 
     self: &mut Storage,
     pool: &mut Pool<ETH, USDC>, // The CLOB pool
     c: &Clock, // CLock shares object to know the timestamp on chain
-    account_cap: &AccountCap,
     ctx: &mut TxContext
   ) {
-    
-    // Get eth data from storage using dynamic field
-    let eth_data = df::borrow_mut<TypeName, Data<ETH>>(&mut self.id, get<ETH>());
-
-    // Deposit 60_000 ETH on the pool
-    clob::deposit_base<ETH, USDC>(pool, coin::mint(&mut eth_data.cap, 60000000000000, ctx), account_cap);
-
-    // Get the USDC data from the storage
-    let usdc_data = df::borrow_mut<TypeName, Data<USDC>>(&mut self.id, get<USDC>());
-
-    // Deposit 6_000_000 USDC in the pool
-    clob::deposit_quote<ETH, USDC>(pool, coin::mint(&mut usdc_data.cap, 6000000000000000, ctx), account_cap);
-
-    // Limit BUY Order
-    // Wanna buy 6000 ETH at 100 USDC or higher
-    clob::place_limit_order(
-      pool,
-      CLIENT_ID, 
-      100 * FLOAT_SCALING, 
-      60000000000000,
-      NO_RESTRICTION,
-      true,
-      MAX_U64, // no expire timestamp,
-      NO_RESTRICTION,
-      c,
-      account_cap,
-      ctx
-    );
-
-    // Limit SELL Order
-    // Wanna sell ETH 6000 ETH at 1200 USDC
-    clob::place_limit_order(
-      pool,
-      CLIENT_ID, // ID for this order
-     120 * FLOAT_SCALING, 
-     60000000000000,
-      NO_RESTRICTION,
-      false,
-      MAX_U64, // no expire timestamp,
-      NO_RESTRICTION,
-      c,
-      account_cap,
-      ctx
-    );  
+    create_ask_orders(self, pool, c, ctx);
+    create_bid_orders(self, pool, c, ctx);
   }
 
 
@@ -262,7 +213,67 @@ module dex::dex {
     let last_mint_epoch = table::borrow_mut(&mut data.faucet_lock, sender);
     *last_mint_epoch = tx_context::epoch(ctx);
     // Mint coin 500 USDC or 3 ETH
-    coin::mint(&mut data.cap, if (type == get<USDC>()) 500 * FLOAT_SCALING else 3 * FLOAT_SCALING, ctx)
+    coin::mint(&mut data.cap, if (type == get<USDC>()) 100 * FLOAT_SCALING else 1 * FLOAT_SCALING, ctx)
+  }
+
+  fun create_ask_orders(
+    self: &mut Storage,
+    pool: &mut Pool<ETH, USDC>, // The CLOB pool
+    c: &Clock, // CLock shares object to know the timestamp on chain
+    ctx: &mut TxContext
+  ) {
+
+    // Get eth data from storage using dynamic field
+    let eth_data = df::borrow_mut<TypeName, Data<ETH>>(&mut self.id, get<ETH>());
+
+    // Deposit 60_000 ETH on the pool
+    clob::deposit_base<ETH, USDC>(pool, coin::mint(&mut eth_data.cap, 60000000000000, ctx), &self.account_cap);
+    // Limit SELL Order
+    // Wanna sell ETH 6000 ETH at 120 USDC
+    clob::place_limit_order(
+      pool,
+      CLIENT_ID, // ID for this order
+     120 * FLOAT_SCALING, 
+     60000000000000,
+      NO_RESTRICTION,
+      false,
+      MAX_U64, // no expire timestamp,
+      NO_RESTRICTION,
+      c,
+      &self.account_cap,
+      ctx
+    );  
+  }
+
+  fun create_bid_orders(
+    self: &mut Storage,
+    pool: &mut Pool<ETH, USDC>, // The CLOB pool
+    c: &Clock, // CLock shares object to know the timestamp on chain
+    ctx: &mut TxContext
+  ) {
+    // Get the USDC data from the storage
+    let usdc_data = df::borrow_mut<TypeName, Data<USDC>>(&mut self.id, get<USDC>());
+
+    // Deposit 6_000_000 USDC in the pool
+    clob::deposit_quote<ETH, USDC>(pool, coin::mint(&mut usdc_data.cap, 6000000000000000, ctx), &self.account_cap);
+
+
+        // Limit BUY Order
+    // Wanna buy 6000 ETH at 100 USDC or higher
+    clob::place_limit_order(
+      pool,
+      CLIENT_ID, 
+      100 * FLOAT_SCALING, 
+      60000000000000,
+      NO_RESTRICTION,
+      true,
+      MAX_U64, // no expire timestamp,
+      NO_RESTRICTION,
+      c,
+      &self.account_cap,
+      ctx
+    );
+
   }
 
   #[test_only]

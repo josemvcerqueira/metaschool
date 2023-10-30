@@ -1,3 +1,4 @@
+#[test_only]
 module dex::test_dex {
   use sui::math;
   use sui::sui::SUI;
@@ -7,10 +8,10 @@ module dex::test_dex {
   use sui::coin::{Self, mint_for_testing, burn_for_testing as burn, Coin, TreasuryCap};
   use sui::test_scenario::{Self as test, Scenario,  next_tx, ctx};
 
-  use deepbook::clob_v2::{Self as clob, Pool};
   use deepbook::custodian_v2::AccountCap;
+  use deepbook::clob_v2::{Self as clob, Pool};
 
-  use dex::dex::{Self, Storage, AdminCap};
+  use dex::dex::{Self, Storage};
   use dex::eth::{Self, ETH};
   use dex::usdc::{Self, USDC};
 
@@ -59,16 +60,12 @@ module dex::test_dex {
     next_tx(test, alice);
     {
       let storage = test::take_shared<Storage>(test);
-      let admin_cap = test::take_from_sender<AdminCap>(test);
       let pool = test::take_shared<Pool<ETH, USDC>>(test);
-      let account_cap = test::take_from_sender<AccountCap>(test);
 
-      dex::fill_pool(&admin_cap, &mut storage, &mut pool, c, &account_cap, ctx(test));
+      dex::fill_pool(&mut storage, &mut pool, c, ctx(test));
 
       test::return_shared(storage);
       test::return_shared(pool);
-      test::return_to_sender(test, account_cap);
-      test::return_to_sender(test, admin_cap);
     };
   }
   
@@ -106,7 +103,7 @@ module dex::test_dex {
 
     test::return_shared(pool);
     test::return_to_sender(test, account_cap);
-  };
+    };
 
     clock::destroy_for_testing(c);
     test::end(scenario);   
