@@ -3,7 +3,7 @@ module dex::test_dex {
   use sui::math;
   use sui::sui::SUI;
   use sui::clock::{Self, Clock};
-  use sui::tx_context::TxContext;
+  use sui::tx_context::{Self, TxContext};
   use sui::test_utils::assert_eq;
   use sui::coin::{Self, mint_for_testing, burn_for_testing as burn, Coin, TreasuryCap};
   use sui::test_scenario::{Self as test, Scenario,  next_tx, ctx};
@@ -14,6 +14,8 @@ module dex::test_dex {
   use dex::dex::{Self, Storage};
   use dex::eth::{Self, ETH};
   use dex::usdc::{Self, USDC};
+
+  const FLOAT_SCALING: u64 = 1_000_000_000; // 1e9
 
   fun set_up_test(test: &mut Scenario, c: &Clock) {
     let (alice, bob) = people();
@@ -68,6 +70,67 @@ module dex::test_dex {
       test::return_shared(pool);
     };
   }
+
+  // Can mint faucet once per epoch
+  #[test]
+  fun test_faucet() {
+    let scenario = scenario();
+
+    let test = &mut scenario;
+    
+    let (_, bob) = people();
+    let c = clock::create_for_testing(ctx(test));
+
+    set_up_test(test, &c);
+
+    // Create an account cap for Bob
+    next_tx(test, bob); 
+    {
+      let storage = test::take_shared<Storage>(test);
+
+      let eth = dex::mint_coin<ETH>(
+        &mut storage,
+        ctx(test)
+      );
+
+      assert_eq(burn(eth), 1 * FLOAT_SCALING);
+
+      let usdc = dex::mint_coin<USDC>(
+        &mut storage,
+        ctx(test)
+      );
+
+      assert_eq(burn(usdc), 100 * FLOAT_SCALING);
+
+      test::return_shared(storage);
+    }; 
+
+    tx_context::increment_epoch_number(ctx(test));
+    // Create an account cap for Bob
+    next_tx(test, bob); 
+    {
+      let storage = test::take_shared<Storage>(test);
+
+      let eth = dex::mint_coin<ETH>(
+        &mut storage,
+        ctx(test)
+      );
+
+      assert_eq(burn(eth), 1 * FLOAT_SCALING);
+
+      let usdc = dex::mint_coin<USDC>(
+        &mut storage,
+        ctx(test)
+      );
+
+      assert_eq(burn(usdc), 100 * FLOAT_SCALING);
+
+      test::return_shared(storage);
+    }; 
+
+    clock::destroy_for_testing(c);
+    test::end(scenario);     
+  }
   
   #[test]
   fun test_market_orders() {
@@ -107,6 +170,114 @@ module dex::test_dex {
 
     clock::destroy_for_testing(c);
     test::end(scenario);   
+  }
+
+  // * Error cases
+
+ #[test]
+ #[expected_failure(abort_code = dex::dex::EAlreadyMintedThisEpoch)]
+  fun test_faucet_error() {
+    let scenario = scenario();
+
+    let test = &mut scenario;
+    
+    let (_, bob) = people();
+    let c = clock::create_for_testing(ctx(test));
+
+    set_up_test(test, &c);
+
+    // Create an account cap for Bob
+    next_tx(test, bob); 
+    {
+      let storage = test::take_shared<Storage>(test);
+
+      let eth = dex::mint_coin<ETH>(
+        &mut storage,
+        ctx(test)
+      );
+
+      assert_eq(burn(eth), 1 * FLOAT_SCALING);
+
+      let usdc = dex::mint_coin<USDC>(
+        &mut storage,
+        ctx(test)
+      );
+
+      assert_eq(burn(usdc), 100 * FLOAT_SCALING);
+
+      test::return_shared(storage);
+    }; 
+
+    // Create an account cap for Bob
+    next_tx(test, bob); 
+    {
+      let storage = test::take_shared<Storage>(test);
+
+      let eth = dex::mint_coin<ETH>(
+        &mut storage,
+        ctx(test)
+      );
+
+      assert_eq(burn(eth), 1 * FLOAT_SCALING);
+
+      test::return_shared(storage);
+    }; 
+
+    clock::destroy_for_testing(c);
+    test::end(scenario);     
+  }
+
+   #[test]
+ #[expected_failure(abort_code = dex::dex::EAlreadyMintedThisEpoch)]
+  fun test_faucet_error_2() {
+    let scenario = scenario();
+
+    let test = &mut scenario;
+    
+    let (_, bob) = people();
+    let c = clock::create_for_testing(ctx(test));
+
+    set_up_test(test, &c);
+
+    // Create an account cap for Bob
+    next_tx(test, bob); 
+    {
+      let storage = test::take_shared<Storage>(test);
+
+      let eth = dex::mint_coin<ETH>(
+        &mut storage,
+        ctx(test)
+      );
+
+      assert_eq(burn(eth), 1 * FLOAT_SCALING);
+
+      let usdc = dex::mint_coin<USDC>(
+        &mut storage,
+        ctx(test)
+      );
+
+      assert_eq(burn(usdc), 100 * FLOAT_SCALING);
+
+      test::return_shared(storage);
+    }; 
+
+    // Create an account cap for Bob
+    next_tx(test, bob); 
+    {
+      let storage = test::take_shared<Storage>(test);
+
+      let usdc = dex::mint_coin<USDC>(
+        &mut storage,
+        ctx(test)
+      );
+
+      assert_eq(burn(usdc), 100 * FLOAT_SCALING);
+
+      test::return_shared(storage);
+    }; 
+
+    clock::destroy_for_testing(c);
+    test::end(scenario);     
   }
 
   // Utils
