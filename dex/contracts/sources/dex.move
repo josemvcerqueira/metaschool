@@ -77,6 +77,53 @@ module dex::dex {
     });
   }
 
+  // * VIEW FUNCTIONS
+
+  public fun user_last_mint_epoch<CoinType>(self: &mut Storage, user: address): u64 {
+    // Load the Coin Data from storage
+    let data = df::borrow_mut<TypeName, Data<CoinType>>(&mut self.id, get<CoinType>());
+
+    // Check if the user has ever used the faucet
+    // If so we retrieve the last epoch saved
+    if (table::contains(&data.faucet_lock, user)) return *table::borrow(&data.faucet_lock, user);
+
+    // If he never used the faucet we return 0
+    0 
+  }
+
+  public fun user_swap_count(self: &mut Storage, user: address): u64 {
+    // Check if the user has ever swapped
+    // If he has we return the total swap count
+    if (table::contains(&self.swaps, user)) return *table::borrow(&self.swaps, user);
+
+    // If he never swapped we return 0
+    0
+  }
+
+  // * MUT FUNCTIONS
+
+  public fun entry_place_market_order(
+    self: &mut Storage,
+    pool: &mut Pool<ETH, USDC>,
+    account_cap: &AccountCap,
+    quantity: u64,
+    is_bid: bool,
+    base_coin: Coin<ETH>,
+    quote_coin: Coin<USDC>,
+    c: &Clock,
+    ctx: &mut TxContext,   
+  ) {
+    // Call place market order
+    let (eth, usdc, coin_dex) = place_market_order(self, pool, account_cap, quantity, is_bid, base_coin, quote_coin, c, ctx);
+    // Save sender in memory
+    let sender = tx_context::sender(ctx);
+
+    // transfer coin if it has value or destroy it
+    transfer_coin(eth, sender);
+    transfer_coin(usdc, sender);
+    transfer_coin(coin_dex, sender);
+  }
+
   /*
   * @param self The shared object of this contract
   * @param pool The DeepBook pool we are trading with
@@ -274,6 +321,16 @@ module dex::dex {
       ctx
     );
 
+  }
+
+  fun transfer_coin<CoinType>(c: Coin<CoinType>, sender: address) {
+    // check if the coin has any value
+    if (coin::value(&c) == 0) {
+      // destroy if it does not
+      coin::destroy_zero(c);
+    }; 
+    // If it has value we transfer
+    transfer::transfer(c, sender);
   }
 
   #[test_only]
