@@ -203,6 +203,12 @@ module dex::dex {
     c: &Clock, // CLock shares object to know the timestamp on chain
     ctx: &mut TxContext
   ) {
+    /*
+    * Deposit funds in DeepBook
+    * Place Limit Sell Orders
+    * Place Buy Sell Orders
+    * To allow others users to buy/sell tokens
+    */
     create_ask_orders(self, pool, c, ctx);
     create_bid_orders(self, pool, c, ctx);
   }
@@ -215,18 +221,6 @@ module dex::dex {
     usdc_cap: TreasuryCap<USDC>, 
     ctx: &mut TxContext
   ) {
-
-    /*
-    * Mint an account cap
-    * Deposit funds in DeepBook
-    * Place Limit Sell Orders
-    * Place Buy Sell Orders
-    * To allow others users to buy/sell tokens
-    */
-    let account_cap = clob::create_account(ctx);
-    
-    // Send account cap the caller
-    transfer::public_transfer(account_cap, tx_context::sender(ctx));
 
     // We save the caps inside the Storage object with dynamic object fields
     // The get is a {TypeName} which is unique
