@@ -45,7 +45,8 @@ module dex::dex {
     id: UID,
     dex_supply: Supply<DEX>,
     swaps: Table<address, u64>,
-    account_cap: AccountCap
+    account_cap: AccountCap,
+    client_id: u64
   }
 
   #[allow(unused_function)]
@@ -73,7 +74,8 @@ module dex::dex {
       dex_supply: coin::treasury_into_supply(treasury_cap), 
       swaps: table::new(ctx),
       // We will store the deployer account_cap here to be able to refill the pool
-      account_cap: clob::create_account(ctx)
+      account_cap: clob::create_account(ctx),
+      client_id: CLIENT_ID
     });
   }
 
@@ -273,7 +275,7 @@ module dex::dex {
     // Wanna sell ETH 6000 ETH at 120 USDC
     clob::place_limit_order(
       pool,
-      CLIENT_ID, // ID for this order
+      self.client_id,  // ID for this order
      120 * FLOAT_SCALING, 
      60000000000000,
       NO_RESTRICTION,
@@ -283,7 +285,9 @@ module dex::dex {
       c,
       &self.account_cap,
       ctx
-    );  
+    );
+
+    self.client_id = self.client_id + 1;
   }
 
   fun create_bid_orders(
@@ -303,7 +307,7 @@ module dex::dex {
     // Wanna buy 6000 ETH at 100 USDC or higher
     clob::place_limit_order(
       pool,
-      CLIENT_ID, 
+      self.client_id, 
       100 * FLOAT_SCALING, 
       60000000000000,
       NO_RESTRICTION,
@@ -314,7 +318,7 @@ module dex::dex {
       &self.account_cap,
       ctx
     );
-
+    self.client_id = self.client_id + 1;
   }
 
   fun transfer_coin<CoinType>(c: Coin<CoinType>, sender: address) {
