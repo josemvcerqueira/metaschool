@@ -4,7 +4,7 @@ import { useWatch } from 'react-hook-form';
 import { mutate } from 'swr';
 import { v4 } from 'uuid';
 
-import Wallet from '@/components/wallet';
+import GoogleConnect from '@/components/google-connect';
 import { COIN_TYPE_TO_SYMBOL, COINS_TYPE } from '@/constants';
 import { useNetwork, useWeb3 } from '@/hooks';
 import { FixedPointMath } from '@/lib';
@@ -78,7 +78,7 @@ const Swap: FC<SwapProps> = (props) => {
       >
         <Box display="flex" justifyContent="flex-end" width="100%" gap="l">
           <MintButtons />
-          <Wallet />
+          <GoogleConnect />
         </Box>
         <Box display="flex" gap="m" mt="2xl">
           <InfoCard

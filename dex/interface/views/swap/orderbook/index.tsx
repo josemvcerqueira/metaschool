@@ -1,4 +1,4 @@
-import { Box } from '@interest-protocol/ui-kit';
+import { Box, Button } from '@interest-protocol/ui-kit';
 import { FC } from 'react';
 import { v4 } from 'uuid';
 
@@ -11,8 +11,17 @@ const Orderbook: FC = () => (
     overflow="hidden"
     flexDirection="column"
   >
-    <Box p="m" textAlign="center" bg="surface.container">
-      Orderbook
+    <Box
+      p="m"
+      display="flex"
+      alignItems="center"
+      bg="surface.container"
+      justifyContent="space-between"
+    >
+      <Box>Orderbook</Box>
+      <Button variant="filled" size="small" px="s" py="xs" fontSize="small">
+        Refresh
+      </Button>
     </Box>
     <Box
       p="m"

@@ -1235,6 +1235,11 @@
   resolved "https://registry.yarnpkg.com/@pythnetwork/price-service-sdk/-/price-service-sdk-1.4.1.tgz#2fc7072883c316013326375024d076878bc092da"
   integrity sha512-ECR5v2WCwYBBWoGyg1wrUc/RgBeemBIT3bJzFUyt3/9cExLuc9pTioAzmlBDTjyMuGy7SBHTgIlUnWeu8BLhVg==
 
+"@react-oauth/google@^0.11.1":
+  version "0.11.1"
+  resolved "https://registry.yarnpkg.com/@react-oauth/google/-/google-0.11.1.tgz#f937c8d02bd37e3a6be7713b8212e9b9b9b3f914"
+  integrity sha512-tywZisXbsdaRBVbEu0VX6dRbOSL2I6DgY97woq5NMOOOz+xtDsm418vqq+Vx10KMtra3kdHMRMf0hXLWrk2RMg==
+
 "@rollup/pluginutils@^4.0.0":
   version "4.2.1"
   resolved "https://registry.yarnpkg.com/@rollup/pluginutils/-/pluginutils-4.2.1.tgz#e6c6c3aba0744edce3fb2074922d3776c0af2a6d"

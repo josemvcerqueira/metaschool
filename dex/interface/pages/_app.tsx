@@ -1,6 +1,7 @@
 /* eslint-disable react/display-name */
 import 'react-loading-skeleton/dist/skeleton.css';
 
+import { GoogleOAuthProvider } from '@react-oauth/google';
 import { Analytics as VercelAnalytics } from '@vercel/analytics/react';
 import { NextPage } from 'next';
 import { AppProps } from 'next/app';
@@ -20,12 +21,15 @@ const MyApp = ({ Component, pageProps }: AppProps<NextPage>): ReactNode => (
       />
     </Head>
     <NextProgress options={{ showSpinner: false }} />
-    <ThemeManager>
-      <StrictMode>
-        <Component {...pageProps} />
-        <VercelAnalytics />
-      </StrictMode>
-    </ThemeManager>
+    {/* TODO: change client id */}
+    <GoogleOAuthProvider clientId="<your_client_id>">
+      <ThemeManager>
+        <StrictMode>
+          <Component {...pageProps} />
+          <VercelAnalytics />
+        </StrictMode>
+      </ThemeManager>
+    </GoogleOAuthProvider>
   </>
 );
 
