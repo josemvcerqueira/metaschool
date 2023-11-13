@@ -5,16 +5,14 @@ import {
 } from '@interest-protocol/sui-amm-sdk';
 import { Button } from '@interest-protocol/ui-kit';
 import {
-  isValidSuiAddress,
-  SUI_TYPE_ARG,
   TransactionBlock,
-} from '@mysten/sui.js';
+} from '@mysten/sui.js/transactions';
 import { useWalletKit } from '@mysten/wallet-kit';
 import { pathOr, propOr } from 'ramda';
 import { FC } from 'react';
 import toast from 'react-hot-toast';
 
-import { useNetwork, useProvider, useWeb3 } from '@/hooks';
+import { useNetwork, useSuiClient, useWeb3 } from '@/hooks';
 import { showTXSuccessToast, throwTXIfNotSuccessful } from '@/utils';
 
 import {
@@ -25,8 +23,8 @@ import {
 
 const MintButtons: FC = () => {
   const { network } = useNetwork();
-  const { provider } = useProvider();
-  const { account, mutate } = useWeb3();
+  const provider = useSuiClient(network);
+  const { mutate } = useWeb3();
   const { signTransactionBlock } = useWalletKit();
 
   const handleOnMint = async (type: string) => {
@@ -34,13 +32,6 @@ const MintButtons: FC = () => {
       const objects = OBJECT_RECORD[network];
 
       if (!type) throw new Error('Token not found');
-
-      if (type === SUI_TYPE_ARG) {
-        if (!account || !isValidSuiAddress(account))
-          throw new Error('Not found token');
-        await provider.requestSuiFromFaucet(account);
-        return;
-      }
 
       const transactionBlock = new TransactionBlock();
 

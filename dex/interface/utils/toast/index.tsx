@@ -1,6 +1,6 @@
 import { Network } from '@interest-protocol/sui-amm-sdk';
 import { Box, Typography } from '@interest-protocol/ui-kit';
-import { SuiTransactionBlockResponse } from '@mysten/sui.js';
+import { SuiTransactionBlockResponse } from '@mysten/sui.js/client';
 import { propOr } from 'ramda';
 import toast from 'react-hot-toast';
 

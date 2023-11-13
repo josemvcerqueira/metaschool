@@ -5,7 +5,7 @@ import { useWatch } from 'react-hook-form';
 import useSWR from 'swr';
 import { useDebounce } from 'use-debounce';
 
-import { useAmmSdk, useNetwork, useProvider } from '@/hooks';
+import { useAmmSdk, useNetwork, useSuiClient } from '@/hooks';
 import { FixedPointMath } from '@/lib';
 import { makeSWRKey } from '@/utils';
 
@@ -27,8 +27,8 @@ const SwapManagerField: FC<SwapManagerProps> = ({
   setIsFetchingSwapAmount,
   setValueName,
 }) => {
-  const { provider } = useProvider();
   const { network } = useNetwork();
+  const provider  = useSuiClient(network);
   const sdk = useAmmSdk();
   const [tokenIn] = useDebounce(useWatch({ control, name }), 900);
 

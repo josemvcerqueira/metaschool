@@ -1,4 +1,4 @@
-import { SUI_TYPE_ARG } from '@mysten/sui.js';
+import { SUI_TYPE_ARG } from '@mysten/sui.js/client';
 
 export const normalizeSuiType = (x: string) => {
   if (x === SUI_TYPE_ARG) return x;

@@ -104,7 +104,7 @@ const SwapFormField: FC<SwapInputProps> = ({
   );
 
   return (
-    <Box pt="l">
+    <Box pt="s">
       <Box
         mb="xs"
         display="flex"

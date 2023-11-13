@@ -35,7 +35,6 @@ const SwapManager: FC<SwapManagerWrapperProps> = ({
 
   return (
     <>
-      (
       <>
         <SwapManagerField
           name="from"

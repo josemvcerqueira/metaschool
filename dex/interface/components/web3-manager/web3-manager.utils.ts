@@ -1,4 +1,5 @@
-import { CoinStruct, PaginatedCoins } from '@mysten/sui.js/src/types/coin';
+import { CoinStruct, PaginatedCoins } from '@mysten/sui.js/client';
+
 import { pathOr } from 'ramda';
 
 import { COIN_DECIMALS, COIN_TYPE_TO_SYMBOL } from '@/constants';
@@ -107,14 +108,14 @@ const getAllCoinsInternal = async ({
   account,
   cursor,
   hasNextPage,
-  provider,
+  suiClient,
 }: GetAllCoinsInternalArgs): Promise<PaginatedCoins['data']> => {
   if (!hasNextPage) return data;
 
-  const payload = await provider.getAllCoins({ owner: account, cursor });
+  const payload = await suiClient.getAllCoins({ owner: account, cursor });
 
   return await getAllCoinsInternal({
-    provider,
+    suiClient,
     account,
     cursor: payload.nextCursor,
     hasNextPage: payload.hasNextPage,
@@ -122,11 +123,11 @@ const getAllCoinsInternal = async ({
   });
 };
 
-export const getAllCoins = async ({ provider, account }: GetAllCoinsArgs) => {
-  const payload = await provider.getAllCoins({ owner: account });
+export const getAllCoins = async ({ suiClient, account }: GetAllCoinsArgs) => {
+  const payload = await suiClient.getAllCoins({ owner: account });
 
   return getAllCoinsInternal({
-    provider,
+    suiClient,
     account,
     cursor: payload.nextCursor,
     data: payload.data,

@@ -4,7 +4,6 @@ export * from './math';
 export * from './number';
 export * from './parse';
 export * from './promise';
-export * from './provider';
 export * from './string';
 export * from './sui-types';
 export * from './toast';
