@@ -19,7 +19,7 @@ const SwapFields: FC<SwapFieldProps> = ({ setValue, getValues }) => {
   };
 
   return (
-    <Box display="flex" justifyContent="center" my="l">
+    <Box display="flex" justifyContent="center">
       <Button
         variant="icon"
         cursor="pointer"
@@ -62,7 +62,7 @@ const SwapForm: FC<SwapFormProps> = ({
   }, [isLoading]);
 
   return (
-    <Box pt="7rem" mx="auto" width="100%" gridColumn="1/-1" maxWidth="35.25rem">
+    <Box mx="auto" width="100%" gridColumn="1/-1" maxWidth="35.25rem">
       <SwapFormField name="from" formSwap={formSwap} />
       <SwapFields setValue={formSwap.setValue} getValues={formSwap.getValues} />
       <SwapFormField name="to" formSwap={formSwap} />

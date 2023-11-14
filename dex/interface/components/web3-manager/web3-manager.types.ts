@@ -1,6 +1,5 @@
 import { Network } from '@interest-protocol/sui-amm-sdk';
-import { JsonRpcProvider } from '@mysten/sui.js';
-import { CoinStruct, PaginatedCoins } from '@mysten/sui.js/src/types/coin';
+import { CoinStruct, PaginatedCoins, SuiClient } from '@mysten/sui.js/client';
 import { WalletAccount } from '@wallet-standard/base';
 import BigNumber from 'bignumber.js';
 import { ReactNode } from 'react';
@@ -40,12 +39,12 @@ export interface ParseCoinsArgs {
 }
 
 export interface GetAllCoinsArgs {
-  provider: JsonRpcProvider;
+  suiClient: SuiClient;
   account: string;
 }
 
 export interface GetAllCoinsInternalArgs extends GetAllCoinsArgs {
   data: PaginatedCoins['data'];
-  cursor: null | string;
+  cursor?: null | string;
   hasNextPage: boolean;
 }

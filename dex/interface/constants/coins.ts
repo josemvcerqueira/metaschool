@@ -5,6 +5,18 @@ export enum TOKEN_SYMBOL {
   USDC = 'USDC',
 }
 
+export const COINS_TYPE = {
+  [Network.DEVNET]: [
+    COIN_TYPE[Network.DEVNET].ETH,
+    COIN_TYPE[Network.DEVNET].USDC,
+  ],
+  [Network.TESTNET]: [
+    COIN_TYPE[Network.TESTNET].ETH,
+    COIN_TYPE[Network.TESTNET].USDC,
+  ],
+  [Network.MAINNET]: [],
+};
+
 export const COIN_TYPE_TO_SYMBOL = {
   [Network.DEVNET]: {
     [COIN_TYPE[Network.DEVNET].ETH]: TOKEN_SYMBOL.ETH,
@@ -15,7 +27,7 @@ export const COIN_TYPE_TO_SYMBOL = {
     [COIN_TYPE[Network.TESTNET].USDC]: TOKEN_SYMBOL.USDC,
   },
   [Network.MAINNET]: {},
-};
+} as Record<Network, Record<string, TOKEN_SYMBOL>>;
 
 export const COIN_DECIMALS = {
   [Network.DEVNET]: {

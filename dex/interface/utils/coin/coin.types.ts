@@ -1,4 +1,4 @@
-import { TransactionBlock } from '@mysten/sui.js';
+import { TransactionBlock } from '@mysten/sui.js/client';
 
 import { CoinsMap } from '@/components/web3-manager/web3-manager.types';
 

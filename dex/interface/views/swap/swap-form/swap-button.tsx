@@ -1,5 +1,5 @@
 import { Button, ProgressIndicator } from '@interest-protocol/ui-kit';
-import { TransactionBlock } from '@mysten/sui.js';
+import { TransactionBlock } from '@mysten/sui.js/transactions';
 import { useWalletKit } from '@mysten/wallet-kit';
 import BigNumber from 'bignumber.js';
 import { path, pathOr } from 'ramda';
@@ -7,7 +7,7 @@ import { FC, useState } from 'react';
 import { useWatch } from 'react-hook-form';
 import toast from 'react-hot-toast';
 
-import { useAmmSdk, useNetwork, useProvider, useWeb3 } from '@/hooks';
+import { useAmmSdk, useNetwork, useSuiClient, useWeb3 } from '@/hooks';
 import { FixedPointMath } from '@/lib';
 import {
   createObjectsParameter,
@@ -37,7 +37,7 @@ const SwapFormButton: FC<SwapFormButtonProps> = ({
   const sdk = useAmmSdk();
   const { account, coinsMap } = useWeb3();
   const { network } = useNetwork();
-  const { provider } = useProvider();
+  const provider = useSuiClient(network);
   const [loading, setLoading] = useState(false);
   const { signTransactionBlock } = useWalletKit();
 
@@ -92,12 +92,12 @@ const SwapFormButton: FC<SwapFormButtonProps> = ({
       const swapTxB = await sdk.swap({
         txb,
         coinInList,
-        coinInAmount: amount.toString(),
-        coinInType: tokenIn.type,
-        coinOutType: tokenOut.type,
-        coinOutMinimumAmount: minAmountOut.toString(),
         deadline: deadline,
         dexMarkets: dexMarket,
+        coinInType: tokenIn.type,
+        coinOutType: tokenOut.type,
+        coinInAmount: amount.toString(),
+        coinOutMinimumAmount: minAmountOut.toString(),
       });
 
       const { signature, transactionBlockBytes } = await signTransactionBlock({
@@ -130,13 +130,13 @@ const SwapFormButton: FC<SwapFormButtonProps> = ({
 
   return (
     <Button
+      mt="s"
       mx="auto"
       size="small"
       variant="filled"
       disabled={isDisabled}
       boxSizing="border-box"
       justifyContent="center"
-      mt={['4xl', '4xl', '2xl']}
       width={['100%', '100%', 'auto']}
       onClick={isDisabled ? undefined : onSwap}
       PrefixIcon={

@@ -3,9 +3,9 @@ import { createContext, FC, useMemo } from 'react';
 import useSWR from 'swr';
 import { useReadLocalStorage } from 'usehooks-ts';
 
-import { useNetwork, useProvider } from '@/hooks';
+import { useNetwork, useSuiClient } from '@/hooks';
 import { LocalTokenMetadataRecord } from '@/interface';
-import { makeSWRKey, noop } from '@/utils';
+import { makeSWRKey, noop,  } from '@/utils';
 
 import { Web3ManagerProps, Web3ManagerState } from './web3-manager.types';
 import { getAllCoins, parseCoins } from './web3-manager.utils';
@@ -27,17 +27,17 @@ export const Web3ManagerContext = createContext<Web3ManagerState>(
 
 const Web3Manager: FC<Web3ManagerProps> = ({ children }) => {
   const { network } = useNetwork();
-  const { provider } = useProvider();
+  const suiClient = useSuiClient(network);
   const { isError, currentAccount, isConnected } = useWalletKit();
 
   const { data, error, mutate, isLoading } = useSWR(
     makeSWRKey(
       [currentAccount, network, currentAccount?.address],
-      provider.getAllCoins.name
+      suiClient.getAllCoins.name
     ),
     async () => {
       if (!currentAccount?.address) return;
-      return getAllCoins({ provider, account: currentAccount.address });
+      return getAllCoins({ suiClient, account: currentAccount.address });
     },
     {
       revalidateOnFocus: false,
