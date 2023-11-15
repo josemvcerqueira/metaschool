@@ -87,6 +87,23 @@ const Swap: FC<SwapProps> = (props) => {
               key={v4()}
               info={
                 <Typography variant="small" my="2xs">
+                  DEX Tokens
+                </Typography>
+              }
+              title={
+                <Typography variant="medium">
+                  {COIN_TYPE_TO_SYMBOL[network][type]}
+                </Typography>
+              }
+            >
+              {Number((Math.random() * 1000).toFixed(6)).toPrecision()}
+            </InfoCard>
+          ))}
+          {COINS_TYPE[network].map((type) => (
+            <InfoCard
+              key={v4()}
+              info={
+                <Typography variant="small" my="2xs">
                   Balance
                 </Typography>
               }
