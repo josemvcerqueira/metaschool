@@ -1,5 +1,4 @@
 import { CoinStruct, PaginatedCoins } from '@mysten/sui.js/client';
-
 import { pathOr } from 'ramda';
 
 import { COIN_DECIMALS, COIN_TYPE_TO_SYMBOL } from '@/constants';
@@ -12,11 +11,11 @@ import {
   Web3ManagerSuiObject,
 } from './web3-manager.types';
 
-export const parseCoins = ({ data, localTokens, network }: ParseCoinsArgs) => {
+export const parseCoins = ({ data, localTokens }: ParseCoinsArgs) => {
   if (!data || !data.length)
     return [[], {}] as [
       ReadonlyArray<Web3ManagerSuiObject>,
-      Record<string, Web3ManagerSuiObject>
+      Record<string, Web3ManagerSuiObject>,
     ];
 
   return (data as CoinStruct[]).reduce(
@@ -51,17 +50,17 @@ export const parseCoins = ({ data, localTokens, network }: ParseCoinsArgs) => {
 
           return [updatedList, updatedMap] as [
             ReadonlyArray<Web3ManagerSuiObject>,
-            Record<string, Web3ManagerSuiObject>
+            Record<string, Web3ManagerSuiObject>,
           ];
         }
 
         const symbol =
-          pathOr(null, [network, type], COIN_TYPE_TO_SYMBOL) ??
+          pathOr(null, [type], COIN_TYPE_TO_SYMBOL) ??
           pathOr(null, [type, 'symbol'], localTokens) ??
           safeSymbol(type, type);
 
         const decimals =
-          pathOr(null, [network, type], COIN_DECIMALS) ??
+          pathOr(null, [type], COIN_DECIMALS) ??
           pathOr(-1, [type, 'decimals'], localTokens);
 
         const symbolArray = symbol.trim().split(' ');
@@ -90,7 +89,7 @@ export const parseCoins = ({ data, localTokens, network }: ParseCoinsArgs) => {
 
         return [updatedList, updatedMap] as [
           ReadonlyArray<Web3ManagerSuiObject>,
-          Record<string, Web3ManagerSuiObject>
+          Record<string, Web3ManagerSuiObject>,
         ];
       }
 
@@ -98,7 +97,7 @@ export const parseCoins = ({ data, localTokens, network }: ParseCoinsArgs) => {
     },
     [[], {}] as [
       ReadonlyArray<Web3ManagerSuiObject>,
-      Record<string, Web3ManagerSuiObject>
+      Record<string, Web3ManagerSuiObject>,
     ]
   );
 };

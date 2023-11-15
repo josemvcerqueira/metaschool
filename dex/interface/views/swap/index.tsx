@@ -4,15 +4,14 @@ import { useWatch } from 'react-hook-form';
 import { mutate } from 'swr';
 import { v4 } from 'uuid';
 
-import GoogleConnect from '@/components/google-connect';
-import { COIN_TYPE_TO_SYMBOL, COINS_TYPE } from '@/constants';
-import { useNetwork, useWeb3 } from '@/hooks';
+import ZKLogin from '@/components/zk-login';
+import { COIN_TYPE_TO_SYMBOL, ETH_TYPE, USDC_TYPE } from '@/constants';
+import { useWeb3 } from '@/hooks';
 import { FixedPointMath } from '@/lib';
 import { ZERO_BIG_NUMBER } from '@/utils';
 
 import MintButtons from './faucet';
 import Orderbook from './orderbook';
-import { useGetDexMarkets } from './swap.hooks';
 import {
   SwapBodyProps,
   SwapManagerWrapperProps,
@@ -21,10 +20,7 @@ import {
 import SwapForm from './swap-form';
 import SwapManager from './swap-manager';
 
-const SwapManagerWrapper: FC<SwapManagerWrapperProps> = ({
-  formSwap,
-  dexMarket,
-}) => {
+const SwapManagerWrapper: FC<SwapManagerWrapperProps> = ({ formSwap }) => {
   const tokenInType = useWatch({
     control: formSwap.control,
     name: 'from.type',
@@ -38,7 +34,6 @@ const SwapManagerWrapper: FC<SwapManagerWrapperProps> = ({
   return (
     <SwapManager
       formSwap={formSwap}
-      dexMarket={dexMarket}
       tokenInType={tokenInType}
       tokenOutType={tokenOutType}
     />
@@ -46,24 +41,16 @@ const SwapManagerWrapper: FC<SwapManagerWrapperProps> = ({
 };
 
 const SwapFormBody: FC<SwapBodyProps> = ({ formSwap }) => {
-  const { data, isLoading } = useGetDexMarkets();
-
   return (
     <>
-      <SwapForm
-        mutate={mutate}
-        formSwap={formSwap}
-        isLoading={isLoading}
-        dexMarket={data || {}}
-      />
-      <SwapManagerWrapper formSwap={formSwap} dexMarket={data || {}} />
+      {/*<SwapForm mutate={mutate} formSwap={formSwap} />*/}
+      {/*<SwapManagerWrapper formSwap={formSwap} />*/}
     </>
   );
 };
 
 const Swap: FC<SwapProps> = (props) => {
   const { coinsMap } = useWeb3();
-  const { network } = useNetwork();
 
   return (
     <Box bg="surface" minHeight="100vh" display="flex">
@@ -78,7 +65,7 @@ const Swap: FC<SwapProps> = (props) => {
       >
         <Box display="flex" justifyContent="flex-end" width="100%" gap="l">
           <MintButtons />
-          <GoogleConnect />
+          <ZKLogin />
         </Box>
         <Box display="flex" gap="m" mt="2xl">
           <InfoCard
@@ -95,7 +82,7 @@ const Swap: FC<SwapProps> = (props) => {
           >
             10
           </InfoCard>
-          {COINS_TYPE[network].map((type) => (
+          {[ETH_TYPE, USDC_TYPE].map((type) => (
             <InfoCard
               key={v4()}
               info={
@@ -105,7 +92,7 @@ const Swap: FC<SwapProps> = (props) => {
               }
               title={
                 <Typography variant="medium">
-                  {COIN_TYPE_TO_SYMBOL[network][type]}
+                  {COIN_TYPE_TO_SYMBOL[type]}
                 </Typography>
               }
             >
@@ -124,10 +111,10 @@ const Swap: FC<SwapProps> = (props) => {
         >
           SWAP
         </Typography>
-        <Box display="flex" color="onSurface" gap="4xl" alignItems="flex-start">
-          <SwapFormBody {...props} />
-          <Orderbook />
-        </Box>
+        {/*<Box display="flex" color="onSurface" gap="4xl" alignItems="flex-start">*/}
+        {/*  <SwapFormBody {...props} />*/}
+        {/*  <Orderbook />*/}
+        {/*</Box>*/}
       </Box>
     </Box>
   );

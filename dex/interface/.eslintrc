@@ -3,19 +3,13 @@
     "import/resolver": {
       "alias": {
         "map": [
-          ["@/HOC", "./components/HOC"],
           ["@/components", "./components"],
-          ["@/context", "./context"],
           ["@/constants", "./constants"],
-          ["@/design-system", "./design-system"],
-          ["@/elements", "./elements"],
           ["@/hooks", "./hooks"],
           ["@/interface", "./interface"],
           ["@/lib", "./lib"],
           ["@/utils", "./utils"],
-          ["@/views", "./views"],
-          ["@/api", "./api"],
-          ["@/state", "./state"]
+          ["@/views", "./views"]
         ],
         "extensions": [".js", ".jsx", ".ts", ".tsx"]
       }
@@ -46,6 +40,7 @@
   "rules": {
     "react/prop-types": "off",
     "react/react-in-jsx-scope": "off",
+    "@typescript-eslint/no-explicit-any": "off",
     "@typescript-eslint/no-unused-vars": ["error"],
     "@emotion/jsx-import": "error",
     "@emotion/pkg-renaming": "error",

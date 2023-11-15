@@ -1,10 +1,10 @@
-import { Network } from '@interest-protocol/sui-amm-sdk';
 import { CoinStruct, PaginatedCoins, SuiClient } from '@mysten/sui.js/client';
 import { WalletAccount } from '@wallet-standard/base';
 import BigNumber from 'bignumber.js';
 import { ReactNode } from 'react';
 import { KeyedMutator } from 'swr';
 
+import { AccountData } from '@/components/zk-login/zk-login.types';
 import { LocalTokenMetadataRecord } from '@/interface';
 
 export interface Web3ManagerSuiObject {
@@ -16,14 +16,14 @@ export interface Web3ManagerSuiObject {
 }
 
 export interface Web3ManagerState {
-  account: null | string;
+  account: null | AccountData;
+  address: string | null;
   coins: ReadonlyArray<Web3ManagerSuiObject>;
   coinsMap: Record<string, Web3ManagerSuiObject>;
   connected: boolean;
   error: boolean;
   mutate: KeyedMutator<PaginatedCoins['data'] | undefined>;
   isFetchingCoinBalances: boolean;
-  walletAccount: null | WalletAccount;
 }
 
 export interface Web3ManagerProps {
@@ -35,7 +35,6 @@ export type CoinsMap = Web3ManagerState['coinsMap'];
 export interface ParseCoinsArgs {
   data: PaginatedCoins['data'] | undefined | never[];
   localTokens: LocalTokenMetadataRecord;
-  network: Network;
 }
 
 export interface GetAllCoinsArgs {

@@ -1,18 +1,18 @@
-import { useWalletKit } from '@mysten/wallet-kit';
 import { createContext, FC, useMemo } from 'react';
 import useSWR from 'swr';
 import { useReadLocalStorage } from 'usehooks-ts';
 
-import { useNetwork, useSuiClient } from '@/hooks';
+import { loadAccount } from '@/components/zk-login/zk-login.utils';
+import { useSuiClient } from '@/hooks';
 import { LocalTokenMetadataRecord } from '@/interface';
-import { makeSWRKey, noop,  } from '@/utils';
+import { makeSWRKey, noop } from '@/utils';
 
 import { Web3ManagerProps, Web3ManagerState } from './web3-manager.types';
 import { getAllCoins, parseCoins } from './web3-manager.utils';
 
 const CONTEXT_DEFAULT_STATE = {
   account: null,
-  walletAccount: null,
+  address: null,
   coins: [],
   coinsMap: {},
   connected: false,
@@ -26,18 +26,14 @@ export const Web3ManagerContext = createContext<Web3ManagerState>(
 );
 
 const Web3Manager: FC<Web3ManagerProps> = ({ children }) => {
-  const { network } = useNetwork();
-  const suiClient = useSuiClient(network);
-  const { isError, currentAccount, isConnected } = useWalletKit();
+  const suiClient = useSuiClient();
+  const account = loadAccount();
 
   const { data, error, mutate, isLoading } = useSWR(
-    makeSWRKey(
-      [currentAccount, network, currentAccount?.address],
-      suiClient.getAllCoins.name
-    ),
+    makeSWRKey([account, account?.userAddr], suiClient.getAllCoins.name),
     async () => {
-      if (!currentAccount?.address) return;
-      return getAllCoins({ suiClient, account: currentAccount.address });
+      if (!account?.userAddr) return;
+      return getAllCoins({ suiClient, account: account.userAddr });
     },
     {
       revalidateOnFocus: false,
@@ -52,18 +48,17 @@ const Web3Manager: FC<Web3ManagerProps> = ({ children }) => {
   );
 
   const [coins, coinsMap] = useMemo(
-    () =>
-      parseCoins({ data, localTokens: tokensMetadataRecord ?? {}, network }),
-    [data, tokensMetadataRecord, network, currentAccount?.address]
+    () => parseCoins({ data, localTokens: tokensMetadataRecord ?? {} }),
+    [data, tokensMetadataRecord, account?.userAddr]
   );
 
   return (
     <Web3ManagerContext.Provider
       value={{
-        account: currentAccount?.address || null,
-        walletAccount: currentAccount || null,
-        error: isError || !!error,
-        connected: isConnected,
+        address: account?.userAddr || null,
+        account: account || null,
+        error: !!error,
+        connected: !!account,
         coins,
         coinsMap,
         mutate,

@@ -1,6 +1,5 @@
 import { Box, Button, Theme, useTheme } from '@interest-protocol/ui-kit';
-import { FC, useEffect, useState } from 'react';
-import { toast } from 'react-hot-toast';
+import { FC, useState } from 'react';
 
 import { DownArrowSVG } from '@/svg';
 
@@ -38,39 +37,15 @@ const SwapFields: FC<SwapFieldProps> = ({ setValue, getValues }) => {
   );
 };
 
-const SwapForm: FC<SwapFormProps> = ({
-  mutate,
-  formSwap,
-  isLoading,
-  dexMarket,
-}) => {
+const SwapForm: FC<SwapFormProps> = ({ mutate, formSwap }) => {
   const [toastState, setToastState] = useState<boolean>(false);
-
-  useEffect(() => {
-    if (isLoading && !toastState) setToastState(true);
-  }, [isLoading]);
-
-  useEffect(() => {
-    if (toastState) toast.loading('Loading...');
-  }, [toastState]);
-
-  useEffect(() => {
-    if (!isLoading && toastState) {
-      setToastState(false);
-      toast.dismiss();
-    }
-  }, [isLoading]);
 
   return (
     <Box mx="auto" width="100%" gridColumn="1/-1" maxWidth="35.25rem">
       <SwapFormField name="from" formSwap={formSwap} />
       <SwapFields setValue={formSwap.setValue} getValues={formSwap.getValues} />
       <SwapFormField name="to" formSwap={formSwap} />
-      <SwapFormButton
-        mutate={mutate}
-        formSwap={formSwap}
-        dexMarket={dexMarket}
-      />
+      <SwapFormButton mutate={mutate} formSwap={formSwap} />
     </Box>
   );
 };

@@ -5,7 +5,7 @@ import { useWatch } from 'react-hook-form';
 import useSWR from 'swr';
 import { useDebounce } from 'use-debounce';
 
-import { useAmmSdk, useNetwork, useSuiClient } from '@/hooks';
+import { useSuiClient } from '@/hooks';
 import { FixedPointMath } from '@/lib';
 import { makeSWRKey } from '@/utils';
 
@@ -19,7 +19,6 @@ const SwapManagerField: FC<SwapManagerProps> = ({
   setError,
   decimals,
   setValue,
-  dexMarket,
   hasNoMarket,
   setSwapPath,
   setIsZeroSwapAmount,
@@ -27,88 +26,10 @@ const SwapManagerField: FC<SwapManagerProps> = ({
   setIsFetchingSwapAmount,
   setValueName,
 }) => {
-  const { network } = useNetwork();
-  const provider  = useSuiClient(network);
-  const sdk = useAmmSdk();
+  const provider = useSuiClient();
   const [tokenIn] = useDebounce(useWatch({ control, name }), 900);
 
   const lock = useWatch({ control, name: 'lock' });
-
-  const { error } = useSWR(
-    makeSWRKey(
-      [account, type, prop('value', tokenIn), prop('type', tokenIn), network],
-      provider.devInspectTransactionBlock.name
-    ),
-    async () => {
-      setValue(`${name}.locked`, true);
-
-      const amount = FixedPointMath.toBigNumber(
-        tokenIn.value,
-        tokenIn.decimals
-      );
-
-      const safeAmount = amount.decimalPlaces(0, BigNumber.ROUND_DOWN);
-
-      if (!tokenIn || !+tokenIn.value || lock || hasNoMarket) return;
-
-      setIsFetchingSwapAmount(true);
-
-      return sdk.quoteSwap({
-        coinInType: tokenIn.type,
-        coinOutType: type,
-        coinInAmount: safeAmount.toString(),
-        markets: dexMarket,
-      });
-    },
-    {
-      onError: () => {
-        setError(false);
-        setIsFetchingSwapAmount(false);
-        setValue(`${name}.locked`, false);
-        setValue('lock', true);
-        setSwapPath(null);
-      },
-      onSuccess: (response) => {
-        if (!response) {
-          setError(false);
-          setIsFetchingSwapAmount(false);
-          setValue(`${name}.locked`, false);
-          setValue('lock', true);
-          return;
-        }
-
-        setIsZeroSwapAmount(!response.amount);
-        setValue(
-          `${setValueName}.value`,
-          FixedPointMath.toNumber(
-            new BigNumber(response.amount),
-            decimals,
-            decimals
-          ).toString()
-        );
-
-        setSwapPath(response.swapObject);
-
-        setError(false);
-        setValue(`${name}.locked`, false);
-        setIsFetchingSwapAmount(false);
-        setValue('lock', true);
-      },
-      revalidateOnFocus: true,
-      revalidateOnMount: true,
-      refreshWhenHidden: false,
-    }
-  );
-
-  useEffect(() => {
-    setValue(
-      'disabled',
-      !!(error && +tokenIn?.value > 0) ||
-        isFetchingSwapAmount ||
-        tokenIn?.type === type ||
-        hasNoMarket
-    );
-  }, [error, tokenIn, hasNoMarket, tokenIn?.type, type, isFetchingSwapAmount]);
 
   return null;
 };

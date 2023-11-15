@@ -1,10 +1,9 @@
-import { Network } from '@interest-protocol/sui-amm-sdk';
 import { NextPage } from 'next';
 import dynamic from 'next/dynamic';
 import { useForm } from 'react-hook-form';
 
 import { SEO } from '@/components';
-import { COINS } from '@/constants';
+import { ETH_TYPE, USDC_TYPE } from '@/constants';
 import Swap from '@/views/swap';
 import { SwapForm } from '@/views/swap/swap.types';
 
@@ -16,17 +15,23 @@ const SwapPage: NextPage = () => {
   const formSwap = useForm<SwapForm>({
     defaultValues: {
       from: {
-        ...COINS[Network.TESTNET].ETH,
+        type: ETH_TYPE,
+        decimals: 9,
+        symbol: 'ETH',
+        value: '0',
       },
       to: {
-        ...COINS[Network.TESTNET].USDC,
+        type: USDC_TYPE,
+        decimals: 9,
+        symbol: 'USDC',
+        value: '0',
       },
     },
   });
 
   return (
     <Web3Manager>
-      <SEO pageTitle="DEX" />
+      <SEO />
       <Swap formSwap={formSwap} />
     </Web3Manager>
   );

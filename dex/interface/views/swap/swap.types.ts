@@ -1,5 +1,4 @@
-import { DexFunctions, DexMarket } from '@interest-protocol/sui-amm-sdk';
-import { PaginatedCoins } from '@mysten/sui.js/src/types/coin';
+import { PaginatedCoins } from '@mysten/sui.js/client';
 import {
   FieldErrors,
   UseFormGetValues,
@@ -32,8 +31,6 @@ export interface SwapBodyProps {
 }
 
 export interface SwapFormProps {
-  isLoading: boolean;
-  dexMarket: DexMarket;
   formSwap: UseFormReturn<SwapForm>;
   mutate: KeyedMutator<PaginatedCoins['data'] | undefined>;
 }
@@ -66,14 +63,12 @@ export interface SwapFieldProps {
 
 export interface SwapManagerWrapperProps {
   formSwap: SwapProps['formSwap'];
-  dexMarket: DexMarket;
 }
 
 export interface SwapPathObject {
   baseTokens: ReadonlyArray<string>;
   coinInType: string;
   coinOutType: string;
-  functionName: DexFunctions;
   typeArgs: Array<string>;
 }
 

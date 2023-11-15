@@ -1,4 +1,3 @@
-import { DexMarket, SwapPathObject } from '@interest-protocol/sui-amm-sdk';
 import { Dispatch, SetStateAction } from 'react';
 import {
   Control,
@@ -11,7 +10,6 @@ import {
 import { SwapForm } from '../swap.types';
 
 export interface SwapManagerWrapperProps {
-  dexMarket: DexMarket;
   tokenInType: string;
   tokenOutType: string;
   formSwap: UseFormReturn<SwapForm>;
@@ -24,7 +22,7 @@ export interface SwapMessagesProps {
   isZeroSwapAmountIn: boolean;
   isZeroSwapAmountOut: boolean;
   errors: FieldErrors<SwapForm>;
-  swapPath: SwapPathObject | null;
+  swapPath: null;
   isFetchingSwapAmountIn: boolean;
   isFetchingSwapAmountOut: boolean;
   setError: UseFormSetError<SwapForm>;
@@ -36,7 +34,6 @@ export interface SwapManagerProps {
   name: 'from' | 'to';
   setValueName: 'from' | 'to';
   hasNoMarket: boolean;
-  dexMarket: DexMarket;
   account: string | null;
   control: Control<SwapForm>;
   isFetchingSwapAmount: boolean;
@@ -44,5 +41,5 @@ export interface SwapManagerProps {
   setError: Dispatch<SetStateAction<boolean>>;
   setIsZeroSwapAmount: Dispatch<SetStateAction<boolean>>;
   setIsFetchingSwapAmount: Dispatch<SetStateAction<boolean>>;
-  setSwapPath: Dispatch<SetStateAction<SwapPathObject | null>>;
+  setSwapPath: Dispatch<SetStateAction<null>>;
 }

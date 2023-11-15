@@ -1,8 +1,6 @@
-import { findAllMarkets, SwapPathObject } from '@interest-protocol/sui-amm-sdk';
 import { FC, useState } from 'react';
 
-import { BASE_TOKENS_TYPES } from '@/constants';
-import { useNetwork, useWeb3 } from '@/hooks';
+import { useWeb3 } from '@/hooks';
 
 import { SwapManagerWrapperProps } from './swap-manager.types';
 import SwapManagerField from './swap-manager-field';
@@ -10,26 +8,19 @@ import { SwapMessages } from './swap-messages';
 
 const SwapManager: FC<SwapManagerWrapperProps> = ({
   formSwap,
-  dexMarket,
   tokenInType,
   tokenOutType,
 }) => {
   const { account } = useWeb3();
-  const { network } = useNetwork();
 
   const [error, setError] = useState(false);
   const [isZeroSwapAmountIn, setIsZeroSwapAmountIn] = useState(false);
   const [isZeroSwapAmountOut, setIsZeroSwapAmountOut] = useState(false);
-  const [swapPath, setSwapPath] = useState<SwapPathObject | null>(null);
+  const [swapPath, setSwapPath] = useState<null>(null);
   const [isFetchingSwapAmountIn, setIsFetchingSwapAmountIn] = useState(false);
   const [isFetchingSwapAmountOut, setIsFetchingSwapAmountOut] = useState(false);
 
-  const markets = findAllMarkets({
-    baseTokens: BASE_TOKENS_TYPES[network],
-    markets: dexMarket,
-    coinInType: tokenInType,
-    coinOutType: tokenOutType,
-  });
+  const markets = [];
 
   const hasNoMarket = !markets.length;
 
@@ -39,10 +30,9 @@ const SwapManager: FC<SwapManagerWrapperProps> = ({
         <SwapManagerField
           name="from"
           setValueName="to"
-          account={account}
+          account={account?.userAddr || null}
           setError={setError}
           type={tokenOutType}
-          dexMarket={dexMarket}
           setSwapPath={setSwapPath}
           hasNoMarket={hasNoMarket}
           control={formSwap.control}
@@ -55,10 +45,9 @@ const SwapManager: FC<SwapManagerWrapperProps> = ({
         <SwapManagerField
           name="to"
           setValueName="from"
-          account={account}
+          account={account?.userAddr || null}
           type={tokenInType}
           setError={setError}
-          dexMarket={dexMarket}
           hasNoMarket={hasNoMarket}
           setSwapPath={setSwapPath}
           control={formSwap.control}

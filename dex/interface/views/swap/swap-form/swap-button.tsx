@@ -1,13 +1,12 @@
 import { Button, ProgressIndicator } from '@interest-protocol/ui-kit';
 import { TransactionBlock } from '@mysten/sui.js/transactions';
-import { useWalletKit } from '@mysten/wallet-kit';
 import BigNumber from 'bignumber.js';
 import { path, pathOr } from 'ramda';
 import { FC, useState } from 'react';
 import { useWatch } from 'react-hook-form';
 import toast from 'react-hot-toast';
 
-import { useAmmSdk, useNetwork, useSuiClient, useWeb3 } from '@/hooks';
+import { useSuiClient, useWeb3 } from '@/hooks';
 import { FixedPointMath } from '@/lib';
 import {
   createObjectsParameter,
@@ -20,11 +19,7 @@ import { getAmountMinusSlippage } from '../swap.utils';
 import { SwapFormButtonProps } from './swap-form.types';
 import { getError } from './swap-form.utils';
 
-const SwapFormButton: FC<SwapFormButtonProps> = ({
-  formSwap,
-  dexMarket,
-  mutate,
-}) => {
+const SwapFormButton: FC<SwapFormButtonProps> = ({ formSwap, mutate }) => {
   const formValues = useWatch({ control: formSwap.control });
 
   const isDisabled =
@@ -34,12 +29,9 @@ const SwapFormButton: FC<SwapFormButtonProps> = ({
     !+pathOr(0, ['from', 'value'], formValues) ||
     formValues.disabled;
 
-  const sdk = useAmmSdk();
   const { account, coinsMap } = useWeb3();
-  const { network } = useNetwork();
-  const provider = useSuiClient(network);
+  const provider = useSuiClient();
   const [loading, setLoading] = useState(false);
-  const { signTransactionBlock } = useWalletKit();
 
   const tokenIn = formSwap.getValues('from');
   const tokenOut = formSwap.getValues('to');
@@ -89,31 +81,31 @@ const SwapFormButton: FC<SwapFormButtonProps> = ({
         amount: amount.toString(),
       });
 
-      const swapTxB = await sdk.swap({
-        txb,
-        coinInList,
-        deadline: deadline,
-        dexMarkets: dexMarket,
-        coinInType: tokenIn.type,
-        coinOutType: tokenOut.type,
-        coinInAmount: amount.toString(),
-        coinOutMinimumAmount: minAmountOut.toString(),
-      });
-
-      const { signature, transactionBlockBytes } = await signTransactionBlock({
-        transactionBlock: swapTxB,
-      });
-
-      const tx = await provider.executeTransactionBlock({
-        transactionBlock: transactionBlockBytes,
-        signature,
-        options: { showEffects: true },
-        requestType: 'WaitForEffectsCert',
-      });
-
-      throwTXIfNotSuccessful(tx);
-
-      await showTXSuccessToast(tx, network);
+      // const swapTxB = await sdk.swap({
+      //   txb,
+      //   coinInList,
+      //   deadline: deadline,
+      //   dexMarkets: dexMarket,
+      //   coinInType: tokenIn.type,
+      //   coinOutType: tokenOut.type,
+      //   coinInAmount: amount.toString(),
+      //   coinOutMinimumAmount: minAmountOut.toString(),
+      // });
+      //
+      // const { signature, transactionBlockBytes } = await signTransactionBlock({
+      //   transactionBlock: swapTxB,
+      // });
+      //
+      // const tx = await provider.executeTransactionBlock({
+      //   transactionBlock: transactionBlockBytes,
+      //   signature,
+      //   options: { showEffects: true },
+      //   requestType: 'WaitForEffectsCert',
+      // });
+      //
+      // throwTXIfNotSuccessful(tx);
+      //
+      // await showTXSuccessToast(tx, network);
     } finally {
       resetInput();
       setLoading(false);
