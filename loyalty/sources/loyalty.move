@@ -1,11 +1,10 @@
 module loyalty::loyalty {
   
-  use sui::transfer;
   use sui::clock::Clock;
   use sui::object::{Self, UID};
   use sui::coin::{Self, Coin};
+  use sui::tx_context::TxContext;
   use sui::balance::{Self, Balance};
-  use sui::tx_context::{Self, TxContext};
 
   use deepbook::clob_v2::Pool;
   use deepbook::custodian_v2::AccountCap;
@@ -81,29 +80,6 @@ module loyalty::loyalty {
     coin::take(&mut account.stake, value, ctx)
   }
 
-  public fun entry_place_market_order(
-    account: &mut LoyaltyAccount,
-    self: &mut Storage,
-    pool: &mut Pool<ETH, USDC>,
-    account_cap: &AccountCap,
-    quantity: u64,
-    is_bid: bool,
-    base_coin: Coin<ETH>,
-    quote_coin: Coin<USDC>,
-    c: &Clock,
-    ctx: &mut TxContext,   
-  ) {
-    // Call place market order
-    let (eth, usdc, coin_dex) = place_market_order(account, self, pool, account_cap, quantity, is_bid, base_coin, quote_coin, c, ctx);
-    // Save sender in memory
-    let sender = tx_context::sender(ctx);
-
-    // transfer coin if it has value or destroy it
-    transfer_coin(eth, sender);
-    transfer_coin(usdc, sender);
-    transfer_coin(coin_dex, sender);
-  }
-
   // @ User can swap via the program to earn points
   public fun place_market_order(
     account: &mut LoyaltyAccount,
@@ -119,13 +95,7 @@ module loyalty::loyalty {
   ): (Coin<ETH>, Coin<USDC>, Coin<DEX>) {
     let (eth, usdc, coin_dex) = dex::place_market_order(self, pool, account_cap, quantity, is_bid, base_coin, quote_coin, c, ctx);
 
-    increment_points(account);
-
-    (eth, usdc, coin_dex)
-  }
-
-  fun increment_points(account: &mut LoyaltyAccount) {
-      // If the user has 0 DEX tokens staked he earns no points
+          // If the user has 0 DEX tokens staked he earns no points
       if (loyalty_account_stake(account) != 0) {
         
           // Borrow mut
@@ -133,17 +103,8 @@ module loyalty::loyalty {
           // Increment
           *points_ref = *points_ref + 1;
       };
-  }
 
-  fun transfer_coin<CoinType>(c: Coin<CoinType>, sender: address) {
-    // check if the coin has any value
-    if (coin::value(&c) == 0) {
-      // destroy if it does not
-      coin::destroy_zero(c);
-    } else {
-    // If it has value we transfer
-    transfer::public_transfer(c, sender);
-    }; 
+    (eth, usdc, coin_dex)
   }
 
   // @dev It allows a test file to destroy the Loyalty Account object
