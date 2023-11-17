@@ -19,7 +19,7 @@ import { getAmountMinusSlippage } from '../swap.utils';
 import { SwapFormButtonProps } from './swap-form.types';
 import { getError } from './swap-form.utils';
 
-const SwapFormButton: FC<SwapFormButtonProps> = ({ formSwap, mutate }) => {
+const SwapFormButton: FC<SwapFormButtonProps> = ({ formSwap }) => {
   const formValues = useWatch({ control: formSwap.control });
 
   const isDisabled =
@@ -109,7 +109,6 @@ const SwapFormButton: FC<SwapFormButtonProps> = ({ formSwap, mutate }) => {
     } finally {
       resetInput();
       setLoading(false);
-      await mutate();
     }
   };
 

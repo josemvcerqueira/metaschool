@@ -32,7 +32,6 @@ export interface SwapBodyProps {
 
 export interface SwapFormProps {
   formSwap: UseFormReturn<SwapForm>;
-  mutate: KeyedMutator<PaginatedCoins['data'] | undefined>;
 }
 
 export interface SwapInputProps {

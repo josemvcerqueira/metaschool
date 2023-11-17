@@ -49,7 +49,7 @@ const Web3Manager: FC<Web3ManagerProps> = ({ children }) => {
 
   const [coins, coinsMap] = useMemo(
     () => parseCoins({ data, localTokens: tokensMetadataRecord ?? {} }),
-    [data, tokensMetadataRecord, account?.userAddr]
+    [data, tokensMetadataRecord, account?.userAddr, isLoading]
   );
 
   return (

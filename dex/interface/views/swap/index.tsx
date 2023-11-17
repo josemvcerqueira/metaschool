@@ -1,7 +1,6 @@
 import { Box, InfoCard, Typography } from '@interest-protocol/ui-kit';
 import { FC } from 'react';
 import { useWatch } from 'react-hook-form';
-import { mutate } from 'swr';
 import { v4 } from 'uuid';
 
 import ZKLogin from '@/components/zk-login';
@@ -43,7 +42,7 @@ const SwapManagerWrapper: FC<SwapManagerWrapperProps> = ({ formSwap }) => {
 const SwapFormBody: FC<SwapBodyProps> = ({ formSwap }) => {
   return (
     <>
-      {/*<SwapForm mutate={mutate} formSwap={formSwap} />*/}
+      <SwapForm formSwap={formSwap} />
       {/*<SwapManagerWrapper formSwap={formSwap} />*/}
     </>
   );
@@ -92,14 +91,14 @@ const Swap: FC<SwapProps> = (props) => {
               }
               title={
                 <Typography variant="medium">
-                  {COIN_TYPE_TO_SYMBOL[network][type]}
+                  {COIN_TYPE_TO_SYMBOL[type]}
                 </Typography>
               }
             >
               {Number((Math.random() * 1000).toFixed(6)).toPrecision()}
             </InfoCard>
           ))}
-          {COINS_TYPE[network].map((type) => (
+          {[ETH_TYPE, USDC_TYPE].map((type) => (
             <InfoCard
               key={v4()}
               info={
@@ -128,10 +127,10 @@ const Swap: FC<SwapProps> = (props) => {
         >
           SWAP
         </Typography>
-        {/*<Box display="flex" color="onSurface" gap="4xl" alignItems="flex-start">*/}
-        {/*  <SwapFormBody {...props} />*/}
-        {/*  <Orderbook />*/}
-        {/*</Box>*/}
+        <Box display="flex" color="onSurface" gap="4xl" alignItems="flex-start">
+          <SwapFormBody {...props} />
+          <Orderbook />
+        </Box>
       </Box>
     </Box>
   );

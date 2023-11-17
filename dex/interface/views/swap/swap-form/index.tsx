@@ -45,7 +45,7 @@ const SwapForm: FC<SwapFormProps> = ({ mutate, formSwap }) => {
       <SwapFormField name="from" formSwap={formSwap} />
       <SwapFields setValue={formSwap.setValue} getValues={formSwap.getValues} />
       <SwapFormField name="to" formSwap={formSwap} />
-      <SwapFormButton mutate={mutate} formSwap={formSwap} />
+      <SwapFormButton formSwap={formSwap} />
     </Box>
   );
 };

@@ -199,8 +199,6 @@ export const completeZkLogin = async () => {
       return null;
     });
 
-  console.log(zkProofs);
-
   if (!zkProofs) {
     return;
   }

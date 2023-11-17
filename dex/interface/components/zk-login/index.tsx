@@ -14,14 +14,20 @@ const ZKLogin: FC = () => {
   useEffect(() => {
     (async () => {
       await completeZkLogin();
-    })().catch();
+    })()
+      .catch(console.warn)
+      .finally(() => mutate().catch(console.warn));
   }, []);
 
   return (
     <div>
-      <button onClick={() => beginZKLogin(suiClient, 'Google')}>
-        Google stuff
-      </button>
+      {account ? (
+        <div>{account.userAddr}</div>
+      ) : (
+        <button onClick={() => beginZKLogin(suiClient, 'Google')}>
+          Google stuff
+        </button>
+      )}
       <button
         disabled={!account}
         onClick={async () => {
