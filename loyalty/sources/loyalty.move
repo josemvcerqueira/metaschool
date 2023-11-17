@@ -1,65 +1,60 @@
 module loyalty::loyalty {
   
+  use sui::transfer;
   use sui::clock::Clock;
   use sui::object::{Self, UID};
-  use sui::transfer;
   use sui::coin::{Self, Coin};
   use sui::balance::{Self, Balance};
-  use sui::table::{Self, Table};
   use sui::tx_context::{Self, TxContext};
 
   use deepbook::clob_v2::Pool;
   use deepbook::custodian_v2::AccountCap;
   
-  use dex::dex::{Self, DEX, Storage};
   use dex::eth::ETH;
   use dex::usdc::USDC;
+  use dex::dex::{Self, DEX, Storage};
 
-  const EMustHavePoints: u64 = 0;
-  const ENeeds5Points: u64 = 1;
-  
-  struct LoyaltyProgram has key {
+  const ENeeds5Points: u64 = 0;
+
+  struct LoyaltyAccount has key, store {
     id: UID,
-    stakes: Table<address, Balance<DEX>>,
-    points: Table<address, u64>
+    // Amount of DEX Coin staked in the program
+    stake: Balance<DEX>,
+    // Amount of points accumulated per swap
+    points: u64
   }
-
+  
   struct NFT has key, store {
     id: UID
   }
 
-  fun init(ctx: &mut TxContext) {
-    // We initiate the LoyalProgram and its fields and share with the network
-    transfer::share_object(LoyaltyProgram { id: object::new(ctx), stakes: table::new(ctx), points: table::new(ctx) });
+  // @dev It creates an account object to keep track of a user points and stake amount
+  public fun create_account(ctx: &mut TxContext): LoyaltyAccount {
+    LoyaltyAccount {
+      id: object::new(ctx),
+      stake: balance::zero(),
+      points: 0
+    }
   }
 
-  public fun get_user_data(program: &LoyaltyProgram, user: address): (u64, u64) {
-    // We check if the he is registered
-    let user_has_points = table::contains(&program.points, user);
-    let user_has_stake = table::contains(&program.stakes, user);
-
-    // if the user is registered, we read the values, if not we return 0
-    (
-      if (user_has_stake) balance::value(table::borrow(&program.stakes, user)) else 0,
-      if (user_has_points) *table::borrow(&program.points, user) else 0
-    )
+  // @dev It allows a module to read the amount of DEX coins staked in an `LoyaltyAccount`
+  public fun loyalty_account_stake(account: &LoyaltyAccount): u64 {
+    balance::value(&account.stake)
   }
 
-  public fun get_reward(program: &mut LoyaltyProgram, ctx: &mut TxContext): NFT {
-    // Save sender in memory
-    let user = tx_context::sender(ctx);
+  // @dev It allows a module to read the number of points in a `LoyaltyAccount`
+  public fun loyalty_account_points(account: &LoyaltyAccount): u64 {
+    account.points
+  }
 
-    // If the user has no points, he cannot proceed
-    assert!(table::contains(&program.points, user), EMustHavePoints);
-
-    // Get a mut reference to the user points
-    let points = table::borrow_mut(&mut program.points, user);
-
+  // @dev It mints an NFT to the user in exchange for 5 points
+  public fun get_reward(account: &mut LoyaltyAccount, ctx: &mut TxContext): NFT {
     // Make sure he has at least 5 points
-    assert!(*points >= 5, ENeeds5Points);
+    assert!(account.points >= 5, ENeeds5Points);
 
     // Deduct 5 points
-    *points = *points - 5;
+    let points_ref = &mut account.points;
+    *points_ref = *points_ref - 5;
 
     // Mint the reward
     NFT {
@@ -68,39 +63,26 @@ module loyalty::loyalty {
   }
 
   public fun stake(
-    program: &mut LoyaltyProgram,
-    stake: Coin<DEX>,
-    ctx: &mut TxContext
+    account: &mut LoyaltyAccount,
+    stake: Coin<DEX>
   ) {
-    
-    // Save the caller in memory
-    let sender = tx_context::sender(ctx);
-
-    // If he never deposited we register him
-    if (table::contains(&program.stakes, sender)) {
-      table::add(&mut program.stakes, sender, balance::zero());
-    };
-
     // Deposit the coin in the contract
-    balance::join(table::borrow_mut(&mut program.stakes, sender), coin::into_balance(stake));
+    balance::join(&mut account.stake, coin::into_balance(stake));
   }
 
   public fun unstake(
-    program: &mut LoyaltyProgram,
+    account: &mut LoyaltyAccount,
     ctx: &mut TxContext
   ): Coin<DEX> {
-    // Get a mut reference of the user balance
-    let stake_balance = table::borrow_mut(&mut program.stakes, tx_context::sender(ctx));
-
     // Save the total balance amount in memory
-    let value = balance::value(stake_balance);
+    let value = loyalty_account_stake(account);
 
     // unstake the balance into a coin
-    coin::take(stake_balance, value, ctx)
+    coin::take(&mut account.stake, value, ctx)
   }
 
   public fun entry_place_market_order(
-    program: &mut LoyaltyProgram,
+    account: &mut LoyaltyAccount,
     self: &mut Storage,
     pool: &mut Pool<ETH, USDC>,
     account_cap: &AccountCap,
@@ -112,7 +94,7 @@ module loyalty::loyalty {
     ctx: &mut TxContext,   
   ) {
     // Call place market order
-    let (eth, usdc, coin_dex) = place_market_order(program, self, pool, account_cap, quantity, is_bid, base_coin, quote_coin, c, ctx);
+    let (eth, usdc, coin_dex) = place_market_order(account, self, pool, account_cap, quantity, is_bid, base_coin, quote_coin, c, ctx);
     // Save sender in memory
     let sender = tx_context::sender(ctx);
 
@@ -124,7 +106,7 @@ module loyalty::loyalty {
 
   // @ User can swap via the program to earn points
   public fun place_market_order(
-    program: &mut LoyaltyProgram,
+    account: &mut LoyaltyAccount,
     self: &mut Storage,
     pool: &mut Pool<ETH, USDC>,
     account_cap: &AccountCap,
@@ -137,30 +119,20 @@ module loyalty::loyalty {
   ): (Coin<ETH>, Coin<USDC>, Coin<DEX>) {
     let (eth, usdc, coin_dex) = dex::place_market_order(self, pool, account_cap, quantity, is_bid, base_coin, quote_coin, c, ctx);
 
-    increment_points(program, tx_context::sender(ctx));
+    increment_points(account);
 
     (eth, usdc, coin_dex)
   }
 
-  fun increment_points(program: &mut LoyaltyProgram, user: address) {
-    // If the user never staked he does not earn any points
-    if (table::contains(&program.stakes, user)) {
-      let stake_amount = table::borrow(&program.stakes, user);
-
+  fun increment_points(account: &mut LoyaltyAccount) {
       // If the user has 0 DEX tokens staked he earns no points
-      if (balance::value(stake_amount) != 0) {
+      if (loyalty_account_stake(account) != 0) {
         
-        // If the user is registered increment his points, if not register him
-        if (table::contains(&program.points, user)) {
           // Borrow mut
-          let points = table::borrow_mut(&mut program.points, user);
+          let points_ref = &mut account.points;
           // Increment
-          *points = *points + 1;
-        } else {
-          table::add(&mut program.points, user, 1)
-        };
+          *points_ref = *points_ref + 1;
       };
-    };
   }
 
   fun transfer_coin<CoinType>(c: Coin<CoinType>, sender: address) {
@@ -172,5 +144,21 @@ module loyalty::loyalty {
     // If it has value we transfer
     transfer::public_transfer(c, sender);
     }; 
+  }
+
+  // @dev It allows a test file to destroy the Loyalty Account object
+  #[test_only]
+  public fun destroy_account_for_testing(account: LoyaltyAccount) {
+    // @dev Properties without the drop ability must be destroyed via their libraries
+    let LoyaltyAccount { id, stake, points: _ } = account;
+    balance::destroy_for_testing(stake);
+    object::delete(id);
+  }
+
+  // @dev It allows a test file to destroy the NFT object
+  #[test_only]
+  public fun destroy_nft_for_testing(nft: NFT) {
+    let NFT { id} = nft;
+    object::delete(id);
   }
 }

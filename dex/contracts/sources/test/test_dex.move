@@ -17,7 +17,7 @@ module dex::test_dex {
 
   const FLOAT_SCALING: u64 = 1_000_000_000; // 1e9
 
-  fun set_up_test(test: &mut Scenario, c: &Clock) {
+  public fun set_up_test(test: &mut Scenario, c: &Clock) {
     let (alice, bob) = people();
 
     // Set up tests
@@ -318,7 +318,7 @@ module dex::test_dex {
     test::end(scenario);     
   }
 
-   #[test]
+  #[test]
  #[expected_failure(abort_code = dex::dex::EAlreadyMintedThisEpoch)]
   fun test_faucet_error_2() {
     let scenario = scenario();
