@@ -4,18 +4,20 @@ module loyalty::loyalty_test {
   use sui::clock;
   use sui::transfer;
   use sui::test_utils::assert_eq;
-  use sui::coin::{mint_for_testing, burn_for_testing};
+  use sui::coin::{Self, mint_for_testing, burn_for_testing};
   use sui::test_scenario::{Self as test, Scenario,  next_tx, ctx};
 
-  use deepbook::clob_v2:: Pool;
   use deepbook::custodian_v2::AccountCap;
+  use deepbook::clob_v2:: {Self as clob, Pool};
 
+  use dex::eth::ETH;
   use dex::test_dex;
-  use dex::dex::{Self, Storage};
-  use dex::eth::{Self, ETH};
-  use dex::usdc::{Self, USDC};
+  use dex::usdc::USDC;
+  use dex::dex::Storage;
 
   use loyalty::loyalty::{Self, LoyaltyAccount};
+
+  const FLOAT_SCALING: u64 = 1_000_000_000; // 1e9
 
   fun set_up_test(test: &mut Scenario) {
     let (alice, _) = people();
@@ -121,16 +123,133 @@ module loyalty::loyalty_test {
     let (alice, _) = people();
 
     set_up_test(test);
+    let c = clock::create_for_testing(ctx(test));
+
+    next_tx(test, alice);
+    {
+      clob::mint_account_cap_transfer(alice, ctx(test));
+    };
 
     // Create an account cap for Bob
     next_tx(test, alice); 
     {
       let account = test::take_from_sender<LoyaltyAccount>(test);
 
-     
+      let storage = test::take_shared<Storage>(test);
+      let account_cap = test::take_from_sender<AccountCap>(test);
+      let pool = test::take_shared<Pool<ETH, USDC>>(test);
 
-      test::return_to_sender(test, account);      
+      loyalty::stake(&mut account, mint_for_testing(1000, ctx(test)));
+
+      assert_eq(loyalty::loyalty_account_points(&account), 0);
+      
+      let (eth_coin, usdc_coin, coin_dex) = loyalty::place_market_order(
+        &mut account,
+        &mut storage,
+        &mut pool, 
+        &account_cap, 
+        FLOAT_SCALING,
+        true,
+        coin::zero<ETH>(ctx(test)),
+        mint_for_testing<USDC>(130 * FLOAT_SCALING, ctx(test)),
+        &c,
+        ctx(test)
+      );
+
+      burn_for_testing(eth_coin);
+      burn_for_testing(usdc_coin);
+      burn_for_testing(coin_dex);
+
+      assert_eq(loyalty::loyalty_account_points(&account), 1);
+
+      let (eth_coin, usdc_coin, coin_dex) = loyalty::place_market_order(
+        &mut account,
+        &mut storage,
+        &mut pool, 
+        &account_cap, 
+        FLOAT_SCALING,
+        true,
+        coin::zero<ETH>(ctx(test)),
+        mint_for_testing<USDC>(130 * FLOAT_SCALING, ctx(test)),
+        &c,
+        ctx(test)
+      );
+
+      burn_for_testing(eth_coin);
+      burn_for_testing(usdc_coin);
+      burn_for_testing(coin_dex);
+
+      assert_eq(loyalty::loyalty_account_points(&account), 2);
+
+      let (eth_coin, usdc_coin, coin_dex) = loyalty::place_market_order(
+        &mut account,
+        &mut storage,
+        &mut pool, 
+        &account_cap, 
+        FLOAT_SCALING,
+        true,
+        coin::zero<ETH>(ctx(test)),
+        mint_for_testing<USDC>(130 * FLOAT_SCALING, ctx(test)),
+        &c,
+        ctx(test)
+      );
+
+      burn_for_testing(eth_coin);
+      burn_for_testing(usdc_coin);
+      burn_for_testing(coin_dex);
+
+      assert_eq(loyalty::loyalty_account_points(&account), 3);
+
+      let (eth_coin, usdc_coin, coin_dex) = loyalty::place_market_order(
+        &mut account,
+        &mut storage,
+        &mut pool, 
+        &account_cap, 
+        FLOAT_SCALING,
+        true,
+        coin::zero<ETH>(ctx(test)),
+        mint_for_testing<USDC>(130 * FLOAT_SCALING, ctx(test)),
+        &c,
+        ctx(test)
+      );
+
+      burn_for_testing(eth_coin);
+      burn_for_testing(usdc_coin);
+      burn_for_testing(coin_dex);
+
+      assert_eq(loyalty::loyalty_account_points(&account), 4);
+
+      let (eth_coin, usdc_coin, coin_dex) = loyalty::place_market_order(
+        &mut account,
+        &mut storage,
+        &mut pool, 
+        &account_cap, 
+        FLOAT_SCALING,
+        true,
+        coin::zero<ETH>(ctx(test)),
+        mint_for_testing<USDC>(130 * FLOAT_SCALING, ctx(test)),
+        &c,
+        ctx(test)
+      );
+
+      assert_eq(loyalty::loyalty_account_points(&account), 5);
+
+      burn_for_testing(eth_coin);
+      burn_for_testing(usdc_coin);
+      burn_for_testing(coin_dex);
+
+      let nft = loyalty::get_reward(&mut account, ctx(test));
+
+      assert_eq(loyalty::loyalty_account_points(&account), 0);
+
+      loyalty::destroy_nft_for_testing(nft);
+
+      test::return_to_sender(test, account);    
+      test::return_shared(pool);
+      test::return_shared(storage);
+      test::return_to_sender(test, account_cap);  
     };
+    clock::destroy_for_testing(c);
     test::end(scenario);  
  }
 
