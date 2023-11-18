@@ -1,5 +1,8 @@
 # Sponsored TX via Shinami
 
+To submit a sponsored transaction, the sender has to build a TransactionBlock and then send it to a sponsor (Shinami in our example).
+The sponsor will attach a GasData object to the transaction, sign it, and return it to the user. The user then has to sign the transaction and submit it to the network.
+
 ## Make sure you have Node and Yarn installed
 
 - [Node](https://nodejs.org/en/)
@@ -13,6 +16,10 @@ yarn install
 ```
 
 ## Create an Account on Shinami
+
+For an in-depth walkthrough guide click [here](https://docs.shinami.com/docs/sponsored-transaction-typescript-tutorial-copy).
+
+Below is a summary of the guide above.
 
 1.  Create an account on [Shinami](https://www.shinami.com/)
 2.  Create a Fund under Gas Station
