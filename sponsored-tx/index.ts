@@ -27,6 +27,7 @@ interface SponsorRpc {
 // Shinami Gas Station endpoint:
 // It will pay for the gas
 const SPONSOR_RPC_URL = 'https://api.shinami.com/gas/v1/<GAS_ACCESS_KEY>';
+const sponsor = rpcClient<SponsorRpc>(SPONSOR_RPC_URL);
 
 // Create provider
 const suiClient = new SuiClient({
@@ -40,8 +41,6 @@ const start = async () => {
   // random Keypair
   const keypair = new Ed25519Keypair();
 
-  const sponsor = rpcClient<SponsorRpc>(SPONSOR_RPC_URL);
-
   // Start a Transaction Block
   const txb = new TransactionBlock();
 
@@ -54,10 +53,12 @@ const start = async () => {
     onlyTransactionKind: true,
   });
 
+  // convert the byte array to a base64 encoded string
   const gaslessPayloadBase64 = btoa(
     bytes.reduce((data, byte) => data + String.fromCharCode(byte), '')
   );
 
+  // Send the gasless programmable payload to Shinami Gas Station for sponsorship, along with the sender and budget
   const sponsoredResponse = await sponsor.gas_sponsorTransactionBlock(
     gaslessPayloadBase64,
     keypair.getPublicKey().toSuiAddress(),
@@ -70,6 +71,7 @@ const start = async () => {
   );
   console.log('Sponsorship Status:', sponsoredStatus);
 
+  // Sign the transaction
   const { signature, bytes: transactionBlock } =
     await keypair.signTransactionBlock(
       await TransactionBlock.from(sponsoredResponse.txBytes).build({
@@ -77,6 +79,7 @@ const start = async () => {
       })
     );
 
+  // Execute
   const executeResponse = await suiClient.executeTransactionBlock({
     signature,
     transactionBlock,
