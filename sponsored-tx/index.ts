@@ -71,13 +71,13 @@ const start = async () => {
   );
   console.log('Sponsorship Status:', sponsoredStatus);
 
-  const senderSignature = await keypair.signTransactionBlock(
+  const { signature: senderSignature } = await keypair.signTransactionBlock(
     await TransactionBlock.from(sponsoredResponse.txBytes).build()
   );
 
   // Execute
   const executeResponse = await suiClient.executeTransactionBlock({
-    signature: [sponsoredResponse.signature, senderSignature.signature],
+    signature: [sponsoredResponse.signature, senderSignature],
     transactionBlock: sponsoredResponse.txBytes,
     options: {
       showEffects: true,
