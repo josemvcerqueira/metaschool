@@ -13,6 +13,9 @@
 
 ## Contracts
 
+The contracts used by the front end have been deployed to the testnet because creating a Pool on DeepBook costs 100 Sui.
+It would be impractical to get 100 Sui every time the Devnet got wiped out.
+
 #### Check active address
 
 ```console
@@ -74,7 +77,7 @@ NEXT_PUBLIC_CLIENT_ID_TWITCH=YOUR_TWITCH_CLIENT_ID
 
 NEXT_PUBLIC_CLIENT_ID_FACEBOOK=YOUR_FACEBOOK_CLIENT_ID
 
-URL_ZK_PROVER=http://YOUR_DIGITAL_OCEAN_DROPLET_IP/v1
+URL_ZK_PROVER=http://YOUR_ZK_LOGIN_PROVER_IP/v1
 ```
 
 #### Run the frontend
