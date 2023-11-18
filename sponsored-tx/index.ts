@@ -71,18 +71,17 @@ const start = async () => {
   );
   console.log('Sponsorship Status:', sponsoredStatus);
 
-  // Sign the transaction
-  const { signature, bytes: transactionBlock } =
-    await keypair.signTransactionBlock(
-      await TransactionBlock.from(sponsoredResponse.txBytes).build({
-        client: suiClient,
-      })
-    );
+  const senderSignature = await keypair.signTransactionBlock(
+    await TransactionBlock.from(sponsoredResponse.txBytes).build()
+  );
 
   // Execute
   const executeResponse = await suiClient.executeTransactionBlock({
-    signature,
-    transactionBlock,
+    signature: [sponsoredResponse.signature, senderSignature.signature],
+    transactionBlock: sponsoredResponse.txBytes,
+    options: {
+      showEffects: true,
+    },
   });
 
   console.log('Execution Status:', executeResponse.effects?.status.status);
