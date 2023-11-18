@@ -1,12 +1,12 @@
-import { PaginatedCoins } from '@mysten/sui.js/client';
+// import { PaginatedCoins } from '@mysten/sui.js/client';
 import {
   FieldErrors,
   UseFormGetValues,
   UseFormReturn,
   UseFormSetValue,
 } from 'react-hook-form';
-import { KeyedMutator } from 'swr';
 
+// import { KeyedMutator } from 'swr';
 import { CoinData } from '@/interface';
 
 export interface SwapToken extends CoinData {

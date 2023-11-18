@@ -1,4 +1,4 @@
-import { getFaucetHost, requestSuiFromFaucetV1 } from '@mysten/sui.js/faucet';
+import { Box, Button } from '@interest-protocol/ui-kit';
 import { FC, useEffect } from 'react';
 
 import {
@@ -20,27 +20,21 @@ const ZKLogin: FC = () => {
   }, []);
 
   return (
-    <div>
+    <Box>
       {account ? (
-        <div>{account.userAddr}</div>
+        <Button size="small" variant="outline" disabled>
+          {account.userAddr.slice(0, 6)}...{account.userAddr.slice(-5)}
+        </Button>
       ) : (
-        <button onClick={() => beginZKLogin(suiClient, 'Google')}>
-          Google stuff
-        </button>
+        <Button
+          size="small"
+          variant="filled"
+          onClick={() => beginZKLogin(suiClient, 'Google')}
+        >
+          Sign with Google
+        </Button>
       )}
-      <button
-        disabled={!account}
-        onClick={async () => {
-          if (account)
-            await requestSuiFromFaucetV1({
-              host: getFaucetHost('devnet'),
-              recipient: account.userAddr,
-            });
-        }}
-      >
-        Faucetsui
-      </button>
-    </div>
+    </Box>
   );
 };
 

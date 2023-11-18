@@ -1,5 +1,5 @@
 import { Box, Button, Theme, useTheme } from '@interest-protocol/ui-kit';
-import { FC, useState } from 'react';
+import { FC } from 'react';
 
 import { DownArrowSVG } from '@/svg';
 
@@ -37,8 +37,11 @@ const SwapFields: FC<SwapFieldProps> = ({ setValue, getValues }) => {
   );
 };
 
-const SwapForm: FC<SwapFormProps> = ({ mutate, formSwap }) => {
-  const [toastState, setToastState] = useState<boolean>(false);
+const SwapForm: FC<SwapFormProps> = ({
+  // mutate,
+  formSwap,
+}) => {
+  // const [toastState, setToastState] = useState<boolean>(false);
 
   return (
     <Box mx="auto" width="100%" gridColumn="1/-1" maxWidth="35.25rem">

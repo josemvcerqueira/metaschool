@@ -42,7 +42,7 @@ const TextFieldWrapper: FC<TextFieldWrapperProps> = ({
     <TextField
       placeholder="0"
       textAlign="right"
-      disabled={locked || !currentTokenType}
+      disabled={name === 'to' || locked || !currentTokenType}
       error={
         currentTokenType &&
         errorMessageKey &&

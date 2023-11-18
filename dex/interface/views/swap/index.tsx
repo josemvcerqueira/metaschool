@@ -1,6 +1,7 @@
 import { Box, InfoCard, Typography } from '@interest-protocol/ui-kit';
+import { SUI_TYPE_ARG } from '@mysten/sui.js/utils';
 import { FC } from 'react';
-import { useWatch } from 'react-hook-form';
+// import { useWatch } from 'react-hook-form';
 import { v4 } from 'uuid';
 
 import ZKLogin from '@/components/zk-login';
@@ -13,31 +14,31 @@ import MintButtons from './faucet';
 import Orderbook from './orderbook';
 import {
   SwapBodyProps,
-  SwapManagerWrapperProps,
+  // SwapManagerWrapperProps,
   SwapProps,
 } from './swap.types';
 import SwapForm from './swap-form';
-import SwapManager from './swap-manager';
+// import SwapManager from './swap-manager';
 
-const SwapManagerWrapper: FC<SwapManagerWrapperProps> = ({ formSwap }) => {
-  const tokenInType = useWatch({
-    control: formSwap.control,
-    name: 'from.type',
-  });
+// const SwapManagerWrapper: FC<SwapManagerWrapperProps> = ({ formSwap }) => {
+//   const tokenInType = useWatch({
+//     control: formSwap.control,
+//     name: 'from.type',
+//   });
 
-  const tokenOutType = useWatch({
-    control: formSwap.control,
-    name: 'to.type',
-  });
+//   const tokenOutType = useWatch({
+//     control: formSwap.control,
+//     name: 'to.type',
+//   });
 
-  return (
-    <SwapManager
-      formSwap={formSwap}
-      tokenInType={tokenInType}
-      tokenOutType={tokenOutType}
-    />
-  );
-};
+//   return (
+//     <SwapManager
+//       formSwap={formSwap}
+//       tokenInType={tokenInType}
+//       tokenOutType={tokenOutType}
+//     />
+//   );
+// };
 
 const SwapFormBody: FC<SwapBodyProps> = ({ formSwap }) => {
   return (
@@ -98,25 +99,22 @@ const Swap: FC<SwapProps> = (props) => {
               {Number((Math.random() * 1000).toFixed(6)).toPrecision()}
             </InfoCard>
           ))}
-          {[ETH_TYPE, USDC_TYPE].map((type) => (
-            <InfoCard
-              key={v4()}
-              info={
-                <Typography variant="small" my="2xs">
-                  Balance
-                </Typography>
-              }
-              title={
-                <Typography variant="medium">
-                  {COIN_TYPE_TO_SYMBOL[type]}
-                </Typography>
-              }
-            >
-              {FixedPointMath.from(
-                coinsMap[type]?.totalBalance ?? ZERO_BIG_NUMBER
-              ).toNumber()}
-            </InfoCard>
-          ))}
+          <InfoCard
+            info={
+              <Typography variant="small" my="2xs">
+                Balance
+              </Typography>
+            }
+            title={
+              <Typography variant="medium">
+                {COIN_TYPE_TO_SYMBOL[SUI_TYPE_ARG]}
+              </Typography>
+            }
+          >
+            {FixedPointMath.from(
+              coinsMap[SUI_TYPE_ARG]?.totalBalance ?? ZERO_BIG_NUMBER
+            ).toNumber()}
+          </InfoCard>
         </Box>
         <Typography
           mt="xl"

@@ -1,16 +1,14 @@
 import { Button } from '@interest-protocol/ui-kit';
-import { TransactionBlock } from '@mysten/sui.js/transactions';
-import { pathOr, propOr } from 'ramda';
+import { getFaucetHost, requestSuiFromFaucetV1 } from '@mysten/sui.js/faucet';
+import { propOr } from 'ramda';
 import { FC } from 'react';
 import toast from 'react-hot-toast';
 
 import { ETH_TYPE, USDC_TYPE } from '@/constants';
-import { useSuiClient, useWeb3 } from '@/hooks';
-import { showTXSuccessToast, throwTXIfNotSuccessful } from '@/utils';
+import { useWeb3 } from '@/hooks';
 
 const MintButtons: FC = () => {
-  const provider = useSuiClient();
-  const { mutate } = useWeb3();
+  const { account } = useWeb3();
 
   const handleOnMint = async (type: string) => {
     // try {
@@ -62,6 +60,27 @@ const MintButtons: FC = () => {
       },
     });
 
+  const handleOnFaucetSUI = async () => {
+    if (account)
+      await requestSuiFromFaucetV1({
+        host: getFaucetHost('devnet'),
+        recipient: account.userAddr,
+      });
+  };
+
+  const onFaucetSUI = () =>
+    toast.promise(handleOnFaucetSUI(), {
+      loading: 'Minting SUI',
+      success: 'SUI minted successfully!',
+      error: (error) => {
+        console.log('>> error :: ', error);
+
+        return propOr('Something went wrong on mint SUI', 'message', error);
+      },
+    });
+
+  if (!account) return null;
+
   return (
     <>
       <Button size="small" variant="filled" onClick={() => onMint(ETH_TYPE)}>
@@ -69,6 +88,9 @@ const MintButtons: FC = () => {
       </Button>
       <Button size="small" variant="filled" onClick={() => onMint(USDC_TYPE)}>
         Mint USDC
+      </Button>
+      <Button size="small" variant="filled" onClick={onFaucetSUI}>
+        Mint SUI
       </Button>
     </>
   );
