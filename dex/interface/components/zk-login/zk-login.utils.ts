@@ -45,9 +45,9 @@ export function saveAccount(account: AccountData): void {
 
 export function loadAccount(): AccountData | null {
   const dataRaw = localStorage.getItem(METASCHOOL_ACCOUNT_KEY);
-  if (!dataRaw) {
-    return null;
-  }
+
+  if (!dataRaw) return null;
+
   return JSON.parse(dataRaw);
 }
 

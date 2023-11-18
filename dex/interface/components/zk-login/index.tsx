@@ -1,24 +1,13 @@
 import { Box, Button } from '@interest-protocol/ui-kit';
-import { FC, useEffect } from 'react';
+import { FC } from 'react';
 
-import {
-  beginZKLogin,
-  completeZkLogin,
-} from '@/components/zk-login/zk-login.utils';
+import { beginZKLogin } from '@/components/zk-login/zk-login.utils';
 import { useSuiClient, useWeb3 } from '@/hooks';
 import { SignOutSVG } from '@/svg';
 
 const ZKLogin: FC = () => {
   const suiClient = useSuiClient();
-  const { mutate, account } = useWeb3();
-
-  useEffect(() => {
-    (async () => {
-      await completeZkLogin();
-    })()
-      .catch(console.warn)
-      .finally(() => mutate().catch(console.warn));
-  }, []);
+  const { account } = useWeb3();
 
   return (
     <Box display="flex" gap="l">

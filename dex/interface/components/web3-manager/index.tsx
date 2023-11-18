@@ -1,8 +1,11 @@
-import { createContext, FC, useMemo } from 'react';
+import { createContext, FC, useEffect, useMemo } from 'react';
 import useSWR from 'swr';
 import { useReadLocalStorage } from 'usehooks-ts';
 
-import { loadAccount } from '@/components/zk-login/zk-login.utils';
+import {
+  completeZkLogin,
+  loadAccount,
+} from '@/components/zk-login/zk-login.utils';
 import { useSuiClient } from '@/hooks';
 import { LocalTokenMetadataRecord } from '@/interface';
 import { makeSWRKey, noop } from '@/utils';
@@ -51,6 +54,14 @@ const Web3Manager: FC<Web3ManagerProps> = ({ children }) => {
     () => parseCoins({ data, localTokens: tokensMetadataRecord ?? {} }),
     [data, tokensMetadataRecord, account?.userAddr, isLoading]
   );
+
+  useEffect(() => {
+    (async () => {
+      await completeZkLogin();
+    })()
+      .catch(console.warn)
+      .finally(() => mutate().catch(console.warn));
+  }, []);
 
   return (
     <Web3ManagerContext.Provider
