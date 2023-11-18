@@ -105,11 +105,7 @@ const Swap: FC<SwapProps> = (props) => {
                 Balance
               </Typography>
             }
-            title={
-              <Typography variant="medium">
-                {COIN_TYPE_TO_SYMBOL[SUI_TYPE_ARG]}
-              </Typography>
-            }
+            title={<Typography variant="medium">SUI</Typography>}
           >
             {FixedPointMath.from(
               coinsMap[SUI_TYPE_ARG]?.totalBalance ?? ZERO_BIG_NUMBER
