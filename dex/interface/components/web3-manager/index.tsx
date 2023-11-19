@@ -7,6 +7,7 @@ import {
   clearSetupData,
   completeZkLogin,
   loadAccount,
+  saveAccount,
 } from '@/components/zk-login/zk-login.utils';
 import { useSuiClient } from '@/hooks';
 import { LocalTokenMetadataRecord } from '@/interface';
@@ -25,6 +26,8 @@ const CONTEXT_DEFAULT_STATE = {
   mutate: noop,
   isFetchingCoinBalances: false,
   setAccount: noop,
+  isLoggingIn: false,
+  setIsLoggingIn: noop,
 };
 
 export const Web3ManagerContext = createContext<Web3ManagerState>(
@@ -34,6 +37,7 @@ export const Web3ManagerContext = createContext<Web3ManagerState>(
 const Web3Manager: FC<Web3ManagerProps> = ({ children }) => {
   const suiClient = useSuiClient();
   const [account, setAccount] = useState<AccountData | null>(null);
+  const [isLoggingIn, setIsLoggingIn] = useState(true);
 
   const { data, error, mutate, isLoading } = useSWR(
     makeSWRKey([account?.userAddr], suiClient.getAllCoins.name),
@@ -82,13 +86,25 @@ const Web3Manager: FC<Web3ManagerProps> = ({ children }) => {
     }
   }, [suiSystemData?.epoch, account?.userAddr]);
 
+  const complete = async () => {
+    try {
+      setIsLoggingIn(true);
+      const account = await completeZkLogin();
+      setAccount(account ?? null);
+      if (account) saveAccount(account);
+    } catch (error) {
+      console.warn(error);
+    } finally {
+      mutate().catch(console.warn);
+    }
+  };
+
   useEffect(() => {
-    (async () => {
-      await completeZkLogin();
-      setAccount(loadAccount());
-    })()
-      .catch(console.warn)
-      .finally(() => mutate().catch(console.warn));
+    setAccount(loadAccount() ?? null);
+  }, [isLoggingIn]);
+
+  useEffect(() => {
+    complete().then(() => setIsLoggingIn(false));
   }, []);
 
   return (
@@ -103,6 +119,8 @@ const Web3Manager: FC<Web3ManagerProps> = ({ children }) => {
         mutate,
         isFetchingCoinBalances: isLoading,
         setAccount,
+        setIsLoggingIn,
+        isLoggingIn,
       }}
     >
       {children}

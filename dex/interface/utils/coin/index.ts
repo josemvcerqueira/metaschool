@@ -1,4 +1,3 @@
-
 import { CreateVectorParameterArgs } from './coin.types';
 
 export const isSymbol = (text: string): boolean =>
@@ -39,9 +38,7 @@ export const createObjectsParameter = ({
   txb,
   type,
   coinsMap,
-  amount,
-}: CreateVectorParameterArgs) => 
-   coinsMap[type]
+}: CreateVectorParameterArgs) =>
+  coinsMap[type]
     ? coinsMap[type].objects.map((x) => txb.object(x.coinObjectId))
     : [];
-

@@ -204,8 +204,7 @@ export const completeZkLogin = async () => {
     return;
   }
 
-  // Save data to local storage so sendTransaction() can use it
-  saveAccount({
+  return {
     provider: setupData.provider,
     userAddr,
     zkProofs,
@@ -216,5 +215,5 @@ export const completeZkLogin = async () => {
     aud:
       typeof jwtPayload.aud === 'string' ? jwtPayload.aud : jwtPayload.aud[0],
     maxEpoch: setupData.maxEpoch,
-  });
+  };
 };

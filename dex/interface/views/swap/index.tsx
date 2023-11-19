@@ -5,7 +5,12 @@ import { FC } from 'react';
 import { v4 } from 'uuid';
 
 import ZKLogin from '@/components/zk-login';
-import { COIN_TYPE_TO_SYMBOL, ETH_TYPE, USDC_TYPE } from '@/constants';
+import {
+  COIN_TYPE_TO_SYMBOL,
+  DEX_COIN_TYPE,
+  ETH_TYPE,
+  USDC_TYPE,
+} from '@/constants';
 import { useWeb3 } from '@/hooks';
 import { FixedPointMath } from '@/lib';
 import { ZERO_BIG_NUMBER } from '@/utils';
@@ -83,21 +88,19 @@ const Swap: FC<SwapProps> = (props) => {
             >
               10
             </InfoCard>
-            {[ETH_TYPE, USDC_TYPE].map((type) => (
+            {[ETH_TYPE, USDC_TYPE, DEX_COIN_TYPE].map((type) => (
               <InfoCard
                 key={v4()}
-                info={
-                  <Typography variant="small" my="2xs">
-                    DEX Tokens
-                  </Typography>
-                }
+                info={null}
                 title={
                   <Typography variant="medium">
                     {COIN_TYPE_TO_SYMBOL[type]}
                   </Typography>
                 }
               >
-                {Number((Math.random() * 1000).toFixed(6)).toPrecision()}
+                {FixedPointMath.from(
+                  coinsMap[type]?.totalBalance ?? ZERO_BIG_NUMBER
+                ).toNumber()}
               </InfoCard>
             ))}
             <InfoCard

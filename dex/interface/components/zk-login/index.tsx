@@ -12,7 +12,7 @@ import {} from './zk-login.utils';
 
 const ZKLogin: FC = () => {
   const suiClient = useSuiClient();
-  const { account, setAccount } = useWeb3();
+  const { account, setAccount, isLoggingIn, setIsLoggingIn } = useWeb3();
 
   return (
     <Box display="flex" gap="l">
@@ -36,7 +36,11 @@ const ZKLogin: FC = () => {
         <Button
           size="small"
           variant="filled"
-          onClick={() => beginZKLogin(suiClient, 'Google')}
+          onClick={async () => {
+            setIsLoggingIn(true);
+            await beginZKLogin(suiClient, 'Google').catch(console.warn);
+          }}
+          disabled={isLoggingIn}
         >
           Sign with Google
         </Button>

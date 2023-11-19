@@ -24,6 +24,8 @@ export interface Web3ManagerState {
   mutate: KeyedMutator<PaginatedCoins['data'] | undefined>;
   isFetchingCoinBalances: boolean;
   setAccount: Dispatch<SetStateAction<AccountData | null>>;
+  setIsLoggingIn: Dispatch<SetStateAction<boolean>>;
+  isLoggingIn: boolean;
 }
 
 export interface Web3ManagerProps {

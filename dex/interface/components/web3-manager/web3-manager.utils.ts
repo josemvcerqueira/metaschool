@@ -1,4 +1,5 @@
 import { CoinStruct, PaginatedCoins } from '@mysten/sui.js/client';
+import { SUI_TYPE_ARG } from '@mysten/sui.js/utils';
 import { pathOr } from 'ramda';
 
 import { COIN_DECIMALS, COIN_TYPE_TO_SYMBOL } from '@/constants';
@@ -21,6 +22,7 @@ export const parseCoins = ({ data, localTokens }: ParseCoinsArgs) => {
   return (data as CoinStruct[]).reduce(
     (acc, object) => {
       const type = normalizeSuiType(object.coinType);
+
       const list = acc[0];
       const map = acc[1];
       const currentCoinBalance = parseBigNumberish(object.balance);

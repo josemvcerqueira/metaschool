@@ -1,52 +1,56 @@
 import { Button } from '@interest-protocol/ui-kit';
 import { getFaucetHost, requestSuiFromFaucetV1 } from '@mysten/sui.js/faucet';
+import { TransactionBlock } from '@mysten/sui.js/transactions';
 import { propOr } from 'ramda';
 import { FC } from 'react';
 import toast from 'react-hot-toast';
 
-import { ETH_TYPE, USDC_TYPE } from '@/constants';
-import { useWeb3 } from '@/hooks';
+import { DEX_STORAGE_ID, ETH_TYPE, PACKAGE_ID, USDC_TYPE } from '@/constants';
+import { useSuiClient, useWeb3 } from '@/hooks';
+import {
+  buildZkLoginTx,
+  showTXSuccessToast,
+  throwTXIfNotSuccessful,
+} from '@/utils';
 
 const MintButtons: FC = () => {
-  const { account } = useWeb3();
+  const { account, mutate } = useWeb3();
+  const suiClient = useSuiClient();
 
   const handleOnMint = async (type: string) => {
-    // try {
-    //   const objects = OBJECT_RECORD[network];
-    //
-    //   if (!type) throw new Error('Token not found');
-    //
-    //   const transactionBlock = new TransactionBlock();
-    //
-    //   transactionBlock.moveCall({
-    //     target: `${objects.FAUCET_PACKAGE_ID}::${COIN_TYPE_TO_CORE_NAME[network][type]}::get`,
-    //     arguments: [
-    //       transactionBlock.object(COIN_TYPE_TO_STORAGE[network][type]),
-    //       transactionBlock.pure(pathOr('1', [network, type], COIN_MINT_AMOUNT)),
-    //     ],
-    //   });
-    //
-    //   const { transactionBlockBytes, signature } = await signTransactionBlock({
-    //     transactionBlock,
-    //   });
-    //
-    //   const tx = await provider.executeTransactionBlock({
-    //     transactionBlock: transactionBlockBytes,
-    //     signature,
-    //     options: {
-    //       showEffects: true,
-    //       showEvents: false,
-    //       showInput: false,
-    //       showBalanceChanges: false,
-    //       showObjectChanges: false,
-    //     },
-    //   });
-    //
-    //   throwTXIfNotSuccessful(tx);
-    //   showTXSuccessToast(tx, network);
-    // } finally {
-    //   await mutate();
-    // }
+    try {
+      if (!type) throw new Error('Token not found');
+      if (!account) throw new Error('Not account found');
+
+      const transactionBlock = new TransactionBlock();
+
+      const minted_coin = transactionBlock.moveCall({
+        target: `${PACKAGE_ID}::dex::mint_coin`,
+        typeArguments: [type],
+        arguments: [transactionBlock.object(DEX_STORAGE_ID)],
+      });
+
+      transactionBlock.transferObjects([minted_coin], account.userAddr);
+
+      const { bytes, signature } = await buildZkLoginTx({
+        suiClient,
+        transactionBlock,
+        account,
+      });
+
+      const tx = await suiClient.executeTransactionBlock({
+        transactionBlock: bytes,
+        signature,
+        options: {
+          showEffects: true,
+        },
+      });
+
+      throwTXIfNotSuccessful(tx);
+      await showTXSuccessToast(tx);
+    } finally {
+      await mutate();
+    }
   };
 
   const onMint = (type: string) =>
@@ -54,27 +58,25 @@ const MintButtons: FC = () => {
       loading: 'Minting...',
       success: 'Token minted successfully!',
       error: (error) => {
-        console.log('>> error :: ', error);
-
         return propOr('Something went wrong on mint token', 'message', error);
       },
     });
 
   const handleOnFaucetSUI = async () => {
-    if (account)
+    if (account) {
       await requestSuiFromFaucetV1({
-        host: getFaucetHost('devnet'),
+        host: getFaucetHost('testnet'),
         recipient: account.userAddr,
       });
+      await mutate();
+    }
   };
 
-  const onFaucetSUI = () =>
-    toast.promise(handleOnFaucetSUI(), {
+  const onFaucetSUI = async () =>
+    await toast.promise(handleOnFaucetSUI(), {
       loading: 'Minting SUI',
       success: 'SUI minted successfully!',
       error: (error) => {
-        console.log('>> error :: ', error);
-
         return propOr('Something went wrong on mint SUI', 'message', error);
       },
     });
