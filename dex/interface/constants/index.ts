@@ -1,3 +1,6 @@
+import { FC, ReactComponentElement } from 'react';
+
+import { SVGProps } from '@/components/svg/svg.types';
 import { ETHSVG, UnknownCoinSVG, USDCSVG } from '@/svg';
 
 export const MAX_NUMBER_INPUT_VALUE = 9000000000000000;
@@ -28,7 +31,7 @@ export const TOKENS_SVG_MAP_V2 = {
   default: UnknownCoinSVG,
   [ETH_TYPE]: ETHSVG,
   [USDC_TYPE]: USDCSVG,
-};
+} as Record<string, FC<SVGProps & { filled?: boolean }>>;
 
 export const TOAST_DURATION = 10000;
 

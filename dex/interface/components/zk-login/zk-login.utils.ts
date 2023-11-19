@@ -37,6 +37,7 @@ export function loadSetupData(): SetupData | null {
 
 export function clearSetupData(): void {
   localStorage.removeItem(METASCHOOL_SET_UP_KEY);
+  localStorage.removeItem(METASCHOOL_ACCOUNT_KEY);
 }
 
 export function saveAccount(account: AccountData): void {

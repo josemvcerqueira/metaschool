@@ -1,8 +1,10 @@
-import { createContext, FC, useEffect, useMemo } from 'react';
+import { createContext, FC, useEffect, useMemo, useState } from 'react';
 import useSWR from 'swr';
 import { useReadLocalStorage } from 'usehooks-ts';
 
+import { AccountData } from '@/components/zk-login/zk-login.types';
 import {
+  clearSetupData,
   completeZkLogin,
   loadAccount,
 } from '@/components/zk-login/zk-login.utils';
@@ -22,6 +24,7 @@ const CONTEXT_DEFAULT_STATE = {
   error: false,
   mutate: noop,
   isFetchingCoinBalances: false,
+  setAccount: noop,
 };
 
 export const Web3ManagerContext = createContext<Web3ManagerState>(
@@ -30,13 +33,27 @@ export const Web3ManagerContext = createContext<Web3ManagerState>(
 
 const Web3Manager: FC<Web3ManagerProps> = ({ children }) => {
   const suiClient = useSuiClient();
-  const account = loadAccount();
+  const [account, setAccount] = useState<AccountData | null>(null);
 
   const { data, error, mutate, isLoading } = useSWR(
-    makeSWRKey([account, account?.userAddr], suiClient.getAllCoins.name),
+    makeSWRKey([account?.userAddr], suiClient.getAllCoins.name),
     async () => {
       if (!account?.userAddr) return;
       return getAllCoins({ suiClient, account: account.userAddr });
+    },
+    {
+      revalidateOnFocus: false,
+      revalidateOnMount: true,
+      refreshWhenHidden: false,
+      refreshInterval: 10000,
+    }
+  );
+
+  const { data: suiSystemData } = useSWR(
+    makeSWRKey([account?.userAddr], suiClient.getLatestSuiSystemState.name),
+    async () => {
+      if (!account?.userAddr) return null;
+      return suiClient.getLatestSuiSystemState();
     },
     {
       revalidateOnFocus: false,
@@ -56,8 +73,19 @@ const Web3Manager: FC<Web3ManagerProps> = ({ children }) => {
   );
 
   useEffect(() => {
+    if (
+      account?.maxEpoch &&
+      suiSystemData?.epoch &&
+      +suiSystemData.epoch > account.maxEpoch
+    ) {
+      clearSetupData();
+    }
+  }, [suiSystemData?.epoch, account?.userAddr]);
+
+  useEffect(() => {
     (async () => {
       await completeZkLogin();
+      setAccount(loadAccount());
     })()
       .catch(console.warn)
       .finally(() => mutate().catch(console.warn));
@@ -74,6 +102,7 @@ const Web3Manager: FC<Web3ManagerProps> = ({ children }) => {
         coinsMap,
         mutate,
         isFetchingCoinBalances: isLoading,
+        setAccount,
       }}
     >
       {children}

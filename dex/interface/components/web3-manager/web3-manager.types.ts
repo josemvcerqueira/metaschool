@@ -1,7 +1,6 @@
 import { CoinStruct, PaginatedCoins, SuiClient } from '@mysten/sui.js/client';
-import { WalletAccount } from '@wallet-standard/base';
 import BigNumber from 'bignumber.js';
-import { ReactNode } from 'react';
+import { Dispatch, ReactNode, SetStateAction } from 'react';
 import { KeyedMutator } from 'swr';
 
 import { AccountData } from '@/components/zk-login/zk-login.types';
@@ -24,6 +23,7 @@ export interface Web3ManagerState {
   error: boolean;
   mutate: KeyedMutator<PaginatedCoins['data'] | undefined>;
   isFetchingCoinBalances: boolean;
+  setAccount: Dispatch<SetStateAction<AccountData | null>>;
 }
 
 export interface Web3ManagerProps {

@@ -50,7 +50,7 @@ const SwapFormBody: FC<SwapBodyProps> = ({ formSwap }) => {
 };
 
 const Swap: FC<SwapProps> = (props) => {
-  const { coinsMap } = useWeb3();
+  const { coinsMap, account } = useWeb3();
 
   return (
     <Box bg="surface" minHeight="100vh" display="flex">
@@ -67,51 +67,53 @@ const Swap: FC<SwapProps> = (props) => {
           <MintButtons />
           <ZKLogin />
         </Box>
-        <Box display="flex" gap="m" mt="2xl">
-          <InfoCard
-            info={
-              <Typography variant="small" my="2xs">
-                DEX Swaps
-              </Typography>
-            }
-            title={
-              <Typography variant="medium" fontSize="2rem">
-                ⇋
-              </Typography>
-            }
-          >
-            10
-          </InfoCard>
-          {[ETH_TYPE, USDC_TYPE].map((type) => (
+        {account ? (
+          <Box display="flex" gap="m" mt="2xl">
             <InfoCard
-              key={v4()}
               info={
                 <Typography variant="small" my="2xs">
-                  DEX Tokens
+                  DEX Swaps
                 </Typography>
               }
               title={
-                <Typography variant="medium">
-                  {COIN_TYPE_TO_SYMBOL[type]}
+                <Typography variant="medium" fontSize="2rem">
+                  ⇋
                 </Typography>
               }
             >
-              {Number((Math.random() * 1000).toFixed(6)).toPrecision()}
+              10
             </InfoCard>
-          ))}
-          <InfoCard
-            info={
-              <Typography variant="small" my="2xs">
-                Balance
-              </Typography>
-            }
-            title={<Typography variant="medium">SUI</Typography>}
-          >
-            {FixedPointMath.from(
-              coinsMap[SUI_TYPE_ARG]?.totalBalance ?? ZERO_BIG_NUMBER
-            ).toNumber()}
-          </InfoCard>
-        </Box>
+            {[ETH_TYPE, USDC_TYPE].map((type) => (
+              <InfoCard
+                key={v4()}
+                info={
+                  <Typography variant="small" my="2xs">
+                    DEX Tokens
+                  </Typography>
+                }
+                title={
+                  <Typography variant="medium">
+                    {COIN_TYPE_TO_SYMBOL[type]}
+                  </Typography>
+                }
+              >
+                {Number((Math.random() * 1000).toFixed(6)).toPrecision()}
+              </InfoCard>
+            ))}
+            <InfoCard
+              info={
+                <Typography variant="small" my="2xs">
+                  Balance
+                </Typography>
+              }
+              title={<Typography variant="medium">SUI</Typography>}
+            >
+              {FixedPointMath.from(
+                coinsMap[SUI_TYPE_ARG]?.totalBalance ?? ZERO_BIG_NUMBER
+              ).toNumber()}
+            </InfoCard>
+          </Box>
+        ) : null}
         <Typography
           mt="xl"
           pt="xl"
