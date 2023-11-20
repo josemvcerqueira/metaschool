@@ -31,6 +31,9 @@ export const USDC_TYPE = `${PACKAGE_ID}::usdc::USDC`;
 
 export const DEX_COIN_TYPE = `${PACKAGE_ID}::dex::DEX`;
 
+export const DEEP_BOOK_POOL =
+  '0x9ad382303632a31f486c78d5a5cef7f8310ccfc3646c683210a754207a1d70e2';
+
 export const TOKENS_SVG_MAP_V2 = {
   default: UnknownCoinSVG,
   [ETH_TYPE]: ETHSVG,

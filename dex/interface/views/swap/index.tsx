@@ -17,7 +17,7 @@ import { FixedPointMath } from '@/lib';
 import { ZERO_BIG_NUMBER } from '@/utils';
 
 import MintButtons from './faucet';
-import Orderbook from './orderbook';
+import MarketPrice from './market-price';
 import {
   SwapBodyProps,
   // SwapManagerWrapperProps,
@@ -134,7 +134,7 @@ const Swap: FC<SwapProps> = (props) => {
         </Typography>
         <Box display="flex" color="onSurface" gap="4xl" alignItems="flex-start">
           <SwapFormBody {...props} />
-          <Orderbook />
+          <MarketPrice />
         </Box>
       </Box>
     </Box>

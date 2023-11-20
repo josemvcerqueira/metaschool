@@ -91,11 +91,11 @@ export const useDexUserInfo = () => {
           getUserSwapCount(suiClient, account.userAddr),
         ]);
 
-      console.log({
-        ethLastMintResponse,
-        usdcLastMintEpoch,
-        swapCountResponse,
-      });
+      return {
+        swapCount: swapCountResponse,
+        lastETHEpoch: ethLastMintResponse,
+        lastUSDCEpoch: usdcLastMintEpoch,
+      };
     },
     {
       revalidateOnFocus: false,
