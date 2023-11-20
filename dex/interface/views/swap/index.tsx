@@ -12,6 +12,7 @@ import {
   USDC_TYPE,
 } from '@/constants';
 import { useWeb3 } from '@/hooks';
+import { useDexUserInfo } from '@/hooks/use-dex-user-info';
 import { FixedPointMath } from '@/lib';
 import { ZERO_BIG_NUMBER } from '@/utils';
 
@@ -57,6 +58,8 @@ const SwapFormBody: FC<SwapBodyProps> = ({ formSwap }) => {
 const Swap: FC<SwapProps> = (props) => {
   const { coinsMap, account } = useWeb3();
 
+  const userInfo = useDexUserInfo();
+
   return (
     <Box bg="surface" minHeight="100vh" display="flex">
       <Box
@@ -69,7 +72,10 @@ const Swap: FC<SwapProps> = (props) => {
         justifyContent={['space-between', 'space-between', 'unset']}
       >
         <Box display="flex" justifyContent="flex-end" width="100%" gap="l">
-          <MintButtons />
+          <MintButtons
+            lastETHEpoch={userInfo.lastETHEpoch}
+            lastUSDCEpoch={userInfo.lastUSDCEpoch}
+          />
           <ZKLogin />
         </Box>
         {account ? (
@@ -86,7 +92,7 @@ const Swap: FC<SwapProps> = (props) => {
                 </Typography>
               }
             >
-              10
+              {userInfo?.swapCount || '0'}
             </InfoCard>
             {[ETH_TYPE, USDC_TYPE, DEX_COIN_TYPE].map((type) => (
               <InfoCard

@@ -6,16 +6,21 @@ import { FC } from 'react';
 import toast from 'react-hot-toast';
 
 import { DEX_STORAGE_ID, ETH_TYPE, PACKAGE_ID, USDC_TYPE } from '@/constants';
-import { useSuiClient, useWeb3 } from '@/hooks';
+import { useSuiClient, useSuiSystemState, useWeb3 } from '@/hooks';
 import {
   buildZkLoginTx,
   showTXSuccessToast,
   throwTXIfNotSuccessful,
 } from '@/utils';
 
-const MintButtons: FC = () => {
+import { MintButtonsProps } from './faucet.types';
+
+const MintButtons: FC<MintButtonsProps> = ({ lastUSDCEpoch, lastETHEpoch }) => {
   const { account, mutate } = useWeb3();
   const suiClient = useSuiClient();
+  const suiSystemState = useSuiSystemState();
+
+  const currentEpoch = BigInt(suiSystemState.data?.epoch || '0');
 
   const handleOnMint = async (type: string) => {
     try {
@@ -85,10 +90,20 @@ const MintButtons: FC = () => {
 
   return (
     <>
-      <Button size="small" variant="filled" onClick={() => onMint(ETH_TYPE)}>
+      <Button
+        disabled={BigInt(lastETHEpoch) >= currentEpoch}
+        size="small"
+        variant="filled"
+        onClick={() => onMint(ETH_TYPE)}
+      >
         Mint ETH
       </Button>
-      <Button size="small" variant="filled" onClick={() => onMint(USDC_TYPE)}>
+      <Button
+        disabled={BigInt(lastUSDCEpoch) >= currentEpoch}
+        size="small"
+        variant="filled"
+        onClick={() => onMint(USDC_TYPE)}
+      >
         Mint USDC
       </Button>
       <Button size="small" variant="filled" onClick={onFaucetSUI}>
