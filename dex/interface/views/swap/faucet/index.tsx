@@ -91,18 +91,20 @@ const MintButtons: FC<MintButtonsProps> = ({ lastUSDCEpoch, lastETHEpoch }) => {
   return (
     <>
       <Button
-        disabled={BigInt(lastETHEpoch) >= currentEpoch}
         size="small"
         variant="filled"
         onClick={() => onMint(ETH_TYPE)}
+        disabled={BigInt(lastETHEpoch) >= currentEpoch}
+        opacity={BigInt(lastETHEpoch) >= currentEpoch ? 0.6 : 1}
       >
         Mint ETH
       </Button>
       <Button
-        disabled={BigInt(lastUSDCEpoch) >= currentEpoch}
         size="small"
         variant="filled"
         onClick={() => onMint(USDC_TYPE)}
+        disabled={BigInt(lastUSDCEpoch) >= currentEpoch}
+        opacity={BigInt(lastUSDCEpoch) >= currentEpoch ? 0.6 : 1}
       >
         Mint USDC
       </Button>

@@ -1,4 +1,4 @@
-import { Box, Button } from '@interest-protocol/ui-kit';
+import { Button } from '@interest-protocol/ui-kit';
 import { FC } from 'react';
 
 import {
@@ -15,15 +15,16 @@ const ZKLogin: FC = () => {
   const { account, setAccount, isLoggingIn, setIsLoggingIn } = useWeb3();
 
   return (
-    <Box display="flex" gap="l">
+    <>
       {account ? (
         <>
-          <Button size="small" variant="outline" disabled>
+          <Button size="small" variant="filled" bg="none" disabled>
             {account.userAddr.slice(0, 6)}...{account.userAddr.slice(-5)}
           </Button>
           <Button
-            variant="icon"
             color="error"
+            variant="icon"
+            display={['none', 'none', 'inline-flex']}
             onClick={async () => {
               clearSetupData();
               setAccount(null);
@@ -31,21 +32,37 @@ const ZKLogin: FC = () => {
           >
             <SignOutSVG maxHeight="1rem" maxWidth="1rem" width="100%" />
           </Button>
+          <Button
+            size="small"
+            color="error"
+            variant="filled"
+            bg="transparent"
+            display={['inline-flex', 'inline-flex', 'none']}
+            PrefixIcon={
+              <SignOutSVG maxHeight="1rem" maxWidth="1rem" width="100%" />
+            }
+            onClick={async () => {
+              clearSetupData();
+              setAccount(null);
+            }}
+          >
+            Disconnect
+          </Button>
         </>
       ) : (
         <Button
           size="small"
           variant="filled"
+          disabled={isLoggingIn}
           onClick={async () => {
             setIsLoggingIn(true);
             await beginZKLogin(suiClient, 'Google').catch(console.warn);
           }}
-          disabled={isLoggingIn}
         >
           Sign with Google
         </Button>
       )}
-    </Box>
+    </>
   );
 };
 

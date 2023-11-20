@@ -94,21 +94,22 @@ const MarketPrice: FC = () => {
         bg="surface.container"
         justifyContent="space-between"
       >
-        <Box>Orderbook</Box>
+        <Box>Market Price</Box>
         <Button
-          onClick={onRefill}
-          disabled={!!data?.bestBidPrice && !!data?.bestAskPrice}
-          variant="filled"
-          size="small"
           px="s"
           py="xs"
+          size="small"
           fontSize="small"
+          variant="outline"
+          onClick={onRefill}
+          disabled={!!data?.bestBidPrice && !!data?.bestAskPrice}
         >
-          Refresh
+          Refill
         </Button>
       </Box>
       <Box
         p="m"
+        gap="m"
         key={v4()}
         fontSize="s"
         display="grid"
@@ -116,14 +117,16 @@ const MarketPrice: FC = () => {
         bg="surface.lowestContainer"
         gridTemplateColumns="1fr 1fr 1fr"
       >
-        <div>
-          ETH ASK PRICE:
+        <Box>ETH</Box>
+        <Box>ASK</Box>
+        <Box>
           {FixedPointMath.from(data?.bestAskPrice || '0').toNumber()} USDC
-        </div>
-        <div>
-          ETH BID PRICE: $
+        </Box>
+        <Box>ETH</Box>
+        <Box>BID</Box>
+        <Box>
           {FixedPointMath.from(data?.bestBidPrice || '0').toNumber()} USDC
-        </div>
+        </Box>
       </Box>
     </Box>
   );

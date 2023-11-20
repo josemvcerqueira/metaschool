@@ -57,6 +57,7 @@ const TextFieldWrapper: FC<TextFieldWrapperProps> = ({
       })}
       Prefix={
         <Button
+          pl="m"
           size="small"
           variant="filled"
           whiteSpace="nowrap"
@@ -65,17 +66,15 @@ const TextFieldWrapper: FC<TextFieldWrapperProps> = ({
           PrefixIcon={
             <Box as="span" display="inline-block">
               <Icon
+                width="100%"
+                height="100%"
                 maxWidth="2rem"
                 maxHeight="2rem"
-                height="100%"
-                width="100%"
               />
             </Box>
           }
         >
-          <Typography variant="medium" minWidth="6rem">
-            {currentTokenSymbol}
-          </Typography>
+          <Typography variant="medium">{currentTokenSymbol}</Typography>
         </Button>
       }
     />

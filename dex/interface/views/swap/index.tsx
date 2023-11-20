@@ -16,44 +16,11 @@ import { useDexUserInfo } from '@/hooks/use-dex-user-info';
 import { FixedPointMath } from '@/lib';
 import { ZERO_BIG_NUMBER } from '@/utils';
 
+import DropdownMenu from './dropdown';
 import MintButtons from './faucet';
 import MarketPrice from './market-price';
-import {
-  SwapBodyProps,
-  // SwapManagerWrapperProps,
-  SwapProps,
-} from './swap.types';
+import { SwapProps } from './swap.types';
 import SwapForm from './swap-form';
-// import SwapManager from './swap-manager';
-
-// const SwapManagerWrapper: FC<SwapManagerWrapperProps> = ({ formSwap }) => {
-//   const tokenInType = useWatch({
-//     control: formSwap.control,
-//     name: 'from.type',
-//   });
-
-//   const tokenOutType = useWatch({
-//     control: formSwap.control,
-//     name: 'to.type',
-//   });
-
-//   return (
-//     <SwapManager
-//       formSwap={formSwap}
-//       tokenInType={tokenInType}
-//       tokenOutType={tokenOutType}
-//     />
-//   );
-// };
-
-const SwapFormBody: FC<SwapBodyProps> = ({ formSwap }) => {
-  return (
-    <>
-      <SwapForm formSwap={formSwap} />
-      {/*<SwapManagerWrapper formSwap={formSwap} />*/}
-    </>
-  );
-};
 
 const Swap: FC<SwapProps> = (props) => {
   const { coinsMap, account } = useWeb3();
@@ -63,7 +30,7 @@ const Swap: FC<SwapProps> = (props) => {
   return (
     <Box bg="surface" minHeight="100vh" display="flex">
       <Box
-        width="100%"
+        m="0"
         display="flex"
         variant="container"
         alignItems="center"
@@ -71,21 +38,25 @@ const Swap: FC<SwapProps> = (props) => {
         flexDirection="column"
         justifyContent={['space-between', 'space-between', 'unset']}
       >
-        <Box display="flex" justifyContent="flex-end" width="100%" gap="l">
+        <Box
+          p="l"
+          gap="l"
+          width="100%"
+          justifyContent="flex-end"
+          display={['none ', 'none ', 'flex']}
+        >
           <MintButtons
             lastETHEpoch={userInfo.lastETHEpoch}
             lastUSDCEpoch={userInfo.lastUSDCEpoch}
           />
           <ZKLogin />
         </Box>
+        <DropdownMenu />
         {account ? (
-          <Box display="flex" gap="m" mt="2xl">
+          <Box display="flex" gap="m" mt="2xl" flexWrap="wrap" p="l">
             <InfoCard
-              info={
-                <Typography variant="small" my="2xs">
-                  DEX Swaps
-                </Typography>
-              }
+              width="10rem"
+              info="DEX Swaps"
               title={
                 <Typography variant="medium" fontSize="2rem">
                   ⇋
@@ -97,7 +68,8 @@ const Swap: FC<SwapProps> = (props) => {
             {[ETH_TYPE, USDC_TYPE, DEX_COIN_TYPE].map((type) => (
               <InfoCard
                 key={v4()}
-                info={null}
+                width="10rem"
+                info="Balance"
                 title={
                   <Typography variant="medium">
                     {COIN_TYPE_TO_SYMBOL[type]}
@@ -110,11 +82,8 @@ const Swap: FC<SwapProps> = (props) => {
               </InfoCard>
             ))}
             <InfoCard
-              info={
-                <Typography variant="small" my="2xs">
-                  Balance
-                </Typography>
-              }
+              width="10rem"
+              info="Balance"
               title={<Typography variant="medium">SUI</Typography>}
             >
               {FixedPointMath.from(
@@ -132,8 +101,14 @@ const Swap: FC<SwapProps> = (props) => {
         >
           SWAP
         </Typography>
-        <Box display="flex" color="onSurface" gap="4xl" alignItems="flex-start">
-          <SwapFormBody {...props} />
+        <Box
+          gap="4xl"
+          display="flex"
+          color="onSurface"
+          alignItems="flex-start"
+          flexDirection={['column', 'column', 'row']}
+        >
+          <SwapForm {...props} />
           <MarketPrice />
         </Box>
       </Box>
