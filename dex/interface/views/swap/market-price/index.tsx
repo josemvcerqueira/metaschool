@@ -70,7 +70,11 @@ const MarketPrice: FC = () => {
       loading: 'Refilling...',
       success: 'Success!',
       error: (error) => {
-        return propOr('Something went wrong on mint token', 'message', error);
+        return propOr(
+          'Something went wrong on rilling the pool',
+          'message',
+          error
+        );
       },
     });
 
