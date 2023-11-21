@@ -29,6 +29,7 @@ import { SwapFormButtonProps } from './swap-form.types';
 
 const SwapFormButton: FC<SwapFormButtonProps> = ({ formSwap }) => {
   const formValues = useWatch({ control: formSwap.control });
+  const { mutate } = useWeb3();
 
   const isDisabled =
     !path(['to', 'type'], formValues) ||
@@ -229,6 +230,7 @@ const SwapFormButton: FC<SwapFormButtonProps> = ({ formSwap }) => {
     } catch (e) {
       throw new Error('Failed to swap');
     } finally {
+      await mutate();
       resetInput();
       setLoading(false);
     }
