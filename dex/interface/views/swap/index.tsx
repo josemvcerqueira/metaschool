@@ -25,7 +25,6 @@ const Swap: FC<SwapProps> = (props) => {
   const { coinsMap, account } = useWeb3();
 
   const userInfo = useDexUserInfo();
-  console.log('USER INFO', userInfo);
 
   return (
     <Box bg="surface" minHeight="100vh" display="flex">

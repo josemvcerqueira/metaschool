@@ -2,7 +2,7 @@ import { Button, ProgressIndicator } from '@interest-protocol/ui-kit';
 import { TransactionBlock } from '@mysten/sui.js/transactions';
 import { SUI_CLOCK_OBJECT_ID } from '@mysten/sui.js/utils';
 import BigNumber from 'bignumber.js';
-import { path, pathOr } from 'ramda';
+import { path, pathOr, propOr } from 'ramda';
 import { FC, useState } from 'react';
 import { useWatch } from 'react-hook-form';
 import toast from 'react-hot-toast';
@@ -69,6 +69,11 @@ const SwapFormButton: FC<SwapFormButtonProps> = ({ formSwap }) => {
             tokenIn.decimals
           ).decimalPlaces(0, BigNumber.ROUND_DOWN);
 
+      const amountOut = FixedPointMath.toBigNumber(
+        tokenOut.value,
+        tokenOut.decimals
+      ).decimalPlaces(0, BigNumber.ROUND_DOWN);
+
       const objects = await suiClient.getOwnedObjects({
         owner: account.userAddr,
         options: {
@@ -96,47 +101,51 @@ const SwapFormButton: FC<SwapFormButtonProps> = ({ formSwap }) => {
         amount: amount.toString(),
       });
 
-      const ethCoin = txb.moveCall({
-        target: '0x2::coin::zero',
-        typeArguments: [ETH_TYPE],
-      });
-
-      txb.moveCall({
-        target: '0x2::pay::join_vec',
-        typeArguments: [ETH_TYPE],
-        arguments: [
-          ethCoin,
-          txb.makeMoveVec({
-            objects: ethCoinInList,
-          }),
-        ],
-      });
-
-      const usdCoin = txb.moveCall({
-        target: '0x2::coin::zero',
-        typeArguments: [USDC_TYPE],
-      });
-
-      txb.moveCall({
-        target: '0x2::pay::join_vec',
-        typeArguments: [USDC_TYPE],
-        arguments: [
-          usdCoin,
-          txb.makeMoveVec({
-            objects: usdCoinInList,
-          }),
-        ],
-      });
+      const isBid = USDC_TYPE.toLowerCase() === tokenIn.type.toLowerCase();
 
       if (cap?.data?.objectId) {
+        const usdCoin = txb.moveCall({
+          target: '0x2::coin::zero',
+          typeArguments: [USDC_TYPE],
+        });
+
+        const ethCoin = txb.moveCall({
+          target: '0x2::coin::zero',
+          typeArguments: [ETH_TYPE],
+        });
+
+        if (isBid) {
+          txb.moveCall({
+            target: '0x2::pay::join_vec',
+            typeArguments: [USDC_TYPE],
+            arguments: [
+              usdCoin,
+              txb.makeMoveVec({
+                objects: usdCoinInList,
+              }),
+            ],
+          });
+        } else {
+          txb.moveCall({
+            target: '0x2::pay::join_vec',
+            typeArguments: [ETH_TYPE],
+            arguments: [
+              ethCoin,
+              txb.makeMoveVec({
+                objects: ethCoinInList,
+              }),
+            ],
+          });
+        }
+
         const [resultEth, resultUSDC, resultDEX] = txb.moveCall({
           target: `${PACKAGE_ID}::dex::place_market_order`,
           arguments: [
             txb.object(DEX_STORAGE_ID),
             txb.object(DEEP_BOOK_POOL),
             txb.object(cap.data.objectId),
-            txb.pure(amount.toString()),
-            txb.pure(false),
+            txb.pure(isBid ? amountOut.toString() : amount.toString()),
+            txb.pure(isBid),
             ethCoin,
             usdCoin,
             txb.object(SUI_CLOCK_OBJECT_ID),
@@ -147,6 +156,39 @@ const SwapFormButton: FC<SwapFormButtonProps> = ({ formSwap }) => {
           account.userAddr
         );
       } else {
+        const usdCoin = txb.moveCall({
+          target: '0x2::coin::zero',
+          typeArguments: [USDC_TYPE],
+        });
+
+        const ethCoin = txb.moveCall({
+          target: '0x2::coin::zero',
+          typeArguments: [ETH_TYPE],
+        });
+
+        if (isBid) {
+          txb.moveCall({
+            target: '0x2::pay::join_vec',
+            typeArguments: [USDC_TYPE],
+            arguments: [
+              usdCoin,
+              txb.makeMoveVec({
+                objects: usdCoinInList,
+              }),
+            ],
+          });
+        } else {
+          txb.moveCall({
+            target: '0x2::pay::join_vec',
+            typeArguments: [ETH_TYPE],
+            arguments: [
+              ethCoin,
+              txb.makeMoveVec({
+                objects: ethCoinInList,
+              }),
+            ],
+          });
+        }
         const cap = deepBook.createAccountCap(txb as any);
         const [resultEth, resultUSDC, resultDEX] = txb.moveCall({
           target: `${PACKAGE_ID}::dex::place_market_order`,
@@ -155,7 +197,7 @@ const SwapFormButton: FC<SwapFormButtonProps> = ({ formSwap }) => {
             txb.object(DEEP_BOOK_POOL),
             cap,
             txb.pure(amount.toString()),
-            txb.pure(false),
+            txb.pure(isBid),
             ethCoin,
             usdCoin,
             txb.object(SUI_CLOCK_OBJECT_ID),
@@ -185,18 +227,20 @@ const SwapFormButton: FC<SwapFormButtonProps> = ({ formSwap }) => {
 
       await showTXSuccessToast(tx);
     } catch (e) {
-      console.warn(e);
+      throw new Error('Failed to swap');
     } finally {
       resetInput();
       setLoading(false);
     }
   };
 
-  const onSwap = () =>
-    toast.promise(handleSwap(), {
+  const onSwap = async () =>
+    await toast.promise(handleSwap(), {
       loading: 'Swapping...',
       success: 'Swap was successfully!',
-      error: (error) => error,
+      error: (error) => {
+        return propOr('Swap failed', 'message', error);
+      },
     });
 
   return (
