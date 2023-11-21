@@ -47,7 +47,6 @@ const getUserSwapCount = async (suiClient: SuiClient, account: string) => {
 
   txb.moveCall({
     target: userSwapCountTarget,
-    typeArguments: [USDC_TYPE],
     arguments: [txb.object(DEX_STORAGE_ID), txb.pure(account)],
   });
 

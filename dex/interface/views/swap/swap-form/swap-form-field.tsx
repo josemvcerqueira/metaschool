@@ -16,13 +16,11 @@ import { FixedPointMath } from '@/lib';
 import { parseInputEventToNumberString, ZERO_BIG_NUMBER } from '@/utils';
 
 import { SwapInputProps, TextFieldWrapperProps } from '../swap.types';
-import { getError } from './swap-form.utils';
 import SwapFormFieldSlider from './swap-form-slider';
 
 const TextFieldWrapper: FC<TextFieldWrapperProps> = ({
   name,
   errors,
-  control,
   register,
   setValue,
   currentTokenType,
@@ -31,28 +29,18 @@ const TextFieldWrapper: FC<TextFieldWrapperProps> = ({
   const { dark } = useTheme() as Theme;
   const Icon = TOKENS_SVG_MAP_V2[currentTokenType] ?? TOKENS_SVG_MAP_V2.default;
 
-  const locked = useWatch({
-    control: control,
-    name: `${name}.locked`,
-  });
-
   const errorMessageKey = errors[name]?.message;
 
   return (
     <TextField
       placeholder="0"
       textAlign="right"
-      disabled={name === 'to' || locked || !currentTokenType}
-      error={
-        currentTokenType &&
-        errorMessageKey &&
-        getError(errorMessageKey, currentTokenSymbol)
-      }
+      disabled={name === 'to' || !currentTokenType}
+      error={currentTokenType && errorMessageKey}
       {...register(`${name}.value`, {
         onChange: (v: ChangeEvent<HTMLInputElement>) => {
           setValue('maxValue', false);
           setValue?.(`${name}.value`, parseInputEventToNumberString(v));
-          setValue('lock', false);
         },
       })}
       Prefix={

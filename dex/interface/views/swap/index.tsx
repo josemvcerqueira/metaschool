@@ -1,7 +1,6 @@
 import { Box, InfoCard, Typography } from '@interest-protocol/ui-kit';
 import { SUI_TYPE_ARG } from '@mysten/sui.js/utils';
 import { FC } from 'react';
-// import { useWatch } from 'react-hook-form';
 import { v4 } from 'uuid';
 
 import ZKLogin from '@/components/zk-login';
@@ -26,6 +25,7 @@ const Swap: FC<SwapProps> = (props) => {
   const { coinsMap, account } = useWeb3();
 
   const userInfo = useDexUserInfo();
+  console.log('USER INFO', userInfo);
 
   return (
     <Box bg="surface" minHeight="100vh" display="flex">

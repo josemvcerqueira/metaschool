@@ -53,3 +53,7 @@ export const COIN_DECIMALS = {
   [USDC_TYPE]: 9,
   [DEX_COIN_TYPE]: 9,
 };
+
+export const ONE_COIN = 1_000_000_000;
+
+export const ACCOUNT_CAP_TYPE = '0xdee9::custodian_v2::AccountCap';

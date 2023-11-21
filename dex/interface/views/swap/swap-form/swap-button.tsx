@@ -1,23 +1,31 @@
 import { Button, ProgressIndicator } from '@interest-protocol/ui-kit';
 import { TransactionBlock } from '@mysten/sui.js/transactions';
+import { SUI_CLOCK_OBJECT_ID } from '@mysten/sui.js/utils';
 import BigNumber from 'bignumber.js';
 import { path, pathOr } from 'ramda';
 import { FC, useState } from 'react';
 import { useWatch } from 'react-hook-form';
 import toast from 'react-hot-toast';
 
-import { useSuiClient, useWeb3 } from '@/hooks';
+import {
+  ACCOUNT_CAP_TYPE,
+  DEEP_BOOK_POOL,
+  DEX_STORAGE_ID,
+  ETH_TYPE,
+  PACKAGE_ID,
+  USDC_TYPE,
+} from '@/constants';
+import { useDeepHook, useSuiClient, useWeb3 } from '@/hooks';
 import { FixedPointMath } from '@/lib';
 import {
+  buildZkLoginTx,
   createObjectsParameter,
   showTXSuccessToast,
   throwTXIfNotSuccessful,
   ZERO_BIG_NUMBER,
 } from '@/utils';
 
-import { getAmountMinusSlippage } from '../swap.utils';
 import { SwapFormButtonProps } from './swap-form.types';
-import { getError } from './swap-form.utils';
 
 const SwapFormButton: FC<SwapFormButtonProps> = ({ formSwap }) => {
   const formValues = useWatch({ control: formSwap.control });
@@ -26,11 +34,11 @@ const SwapFormButton: FC<SwapFormButtonProps> = ({ formSwap }) => {
     !path(['to', 'type'], formValues) ||
     !path(['from', 'type'], formValues) ||
     !+pathOr(0, ['to', 'value'], formValues) ||
-    !+pathOr(0, ['from', 'value'], formValues) ||
-    formValues.disabled;
+    !+pathOr(0, ['from', 'value'], formValues);
 
   const { account, coinsMap } = useWeb3();
-  const provider = useSuiClient();
+  const suiClient = useSuiClient();
+  const deepBook = useDeepHook();
   const [loading, setLoading] = useState(false);
 
   const tokenIn = formSwap.getValues('from');
@@ -46,15 +54,11 @@ const SwapFormButton: FC<SwapFormButtonProps> = ({ formSwap }) => {
     try {
       setLoading(true);
 
-      const slippage = '0.1';
-      const deadline = '10';
+      if (!tokenIn.type || !tokenOut.type) throw new Error('No Tokens');
 
-      if (!tokenIn.type || !tokenOut.type)
-        throw new Error(getError('select2Tokens'));
+      if (!account) throw new Error('No account');
 
-      if (!account) throw new Error(getError('accountNotFound'));
-
-      if (!+tokenIn.value) throw new Error(getError('cannotSell0'));
+      if (!+tokenIn.value) throw new Error('Cannot sell 0 coins');
 
       const isMaxTrade = formSwap.getValues('maxValue');
 
@@ -65,47 +69,123 @@ const SwapFormButton: FC<SwapFormButtonProps> = ({ formSwap }) => {
             tokenIn.decimals
           ).decimalPlaces(0, BigNumber.ROUND_DOWN);
 
-      const amountOut = FixedPointMath.toBigNumber(
-        tokenOut.value,
-        tokenOut.decimals
-      ).decimalPlaces(0, BigNumber.ROUND_DOWN);
+      const objects = await suiClient.getOwnedObjects({
+        owner: account.userAddr,
+        options: {
+          showType: true,
+        },
+      });
 
-      const minAmountOut = getAmountMinusSlippage(amountOut, slippage);
+      const cap = objects.data.find(
+        (obj) => obj.data?.type === ACCOUNT_CAP_TYPE
+      );
 
       const txb = new TransactionBlock();
 
-      const coinInList = createObjectsParameter({
+      const ethCoinInList = createObjectsParameter({
         coinsMap,
         txb,
-        type: tokenIn.type,
+        type: ETH_TYPE,
         amount: amount.toString(),
       });
 
-      // const swapTxB = await sdk.swap({
-      //   txb,
-      //   coinInList,
-      //   deadline: deadline,
-      //   dexMarkets: dexMarket,
-      //   coinInType: tokenIn.type,
-      //   coinOutType: tokenOut.type,
-      //   coinInAmount: amount.toString(),
-      //   coinOutMinimumAmount: minAmountOut.toString(),
-      // });
-      //
-      // const { signature, transactionBlockBytes } = await signTransactionBlock({
-      //   transactionBlock: swapTxB,
-      // });
-      //
-      // const tx = await provider.executeTransactionBlock({
-      //   transactionBlock: transactionBlockBytes,
-      //   signature,
-      //   options: { showEffects: true },
-      //   requestType: 'WaitForEffectsCert',
-      // });
-      //
-      // throwTXIfNotSuccessful(tx);
-      //
-      // await showTXSuccessToast(tx, network);
+      const usdCoinInList = createObjectsParameter({
+        coinsMap,
+        txb,
+        type: USDC_TYPE,
+        amount: amount.toString(),
+      });
+
+      const ethCoin = txb.moveCall({
+        target: '0x2::coin::zero',
+        typeArguments: [ETH_TYPE],
+      });
+
+      txb.moveCall({
+        target: '0x2::pay::join_vec',
+        typeArguments: [ETH_TYPE],
+        arguments: [
+          ethCoin,
+          txb.makeMoveVec({
+            objects: ethCoinInList,
+          }),
+        ],
+      });
+
+      const usdCoin = txb.moveCall({
+        target: '0x2::coin::zero',
+        typeArguments: [USDC_TYPE],
+      });
+
+      txb.moveCall({
+        target: '0x2::pay::join_vec',
+        typeArguments: [USDC_TYPE],
+        arguments: [
+          usdCoin,
+          txb.makeMoveVec({
+            objects: usdCoinInList,
+          }),
+        ],
+      });
+
+      if (cap?.data?.objectId) {
+        const [resultEth, resultUSDC, resultDEX] = txb.moveCall({
+          target: `${PACKAGE_ID}::dex::place_market_order`,
+          arguments: [
+            txb.object(DEX_STORAGE_ID),
+            txb.object(DEEP_BOOK_POOL),
+            txb.object(cap.data.objectId),
+            txb.pure(amount.toString()),
+            txb.pure(false),
+            ethCoin,
+            usdCoin,
+            txb.object(SUI_CLOCK_OBJECT_ID),
+          ],
+        });
+        txb.transferObjects(
+          [resultEth, resultUSDC, resultDEX],
+          account.userAddr
+        );
+      } else {
+        const cap = deepBook.createAccountCap(txb as any);
+        const [resultEth, resultUSDC, resultDEX] = txb.moveCall({
+          target: `${PACKAGE_ID}::dex::place_market_order`,
+          arguments: [
+            txb.object(DEX_STORAGE_ID),
+            txb.object(DEEP_BOOK_POOL),
+            cap,
+            txb.pure(amount.toString()),
+            txb.pure(false),
+            ethCoin,
+            usdCoin,
+            txb.object(SUI_CLOCK_OBJECT_ID),
+          ],
+        });
+        txb.transferObjects(
+          [cap, resultEth, resultUSDC, resultDEX],
+          account.userAddr
+        );
+      }
+
+      const { bytes, signature } = await buildZkLoginTx({
+        suiClient,
+        transactionBlock: txb,
+        account,
+      });
+
+      const tx = await suiClient.executeTransactionBlock({
+        transactionBlock: bytes,
+        signature,
+        options: {
+          showEffects: true,
+        },
+      });
+
+      throwTXIfNotSuccessful(tx);
+
+      await showTXSuccessToast(tx);
+    } catch (e) {
+      console.warn(e);
     } finally {
       resetInput();
       setLoading(false);
